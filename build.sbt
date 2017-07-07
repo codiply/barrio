@@ -9,6 +9,7 @@ libraryDependencies ++= {
   val akkaHttpVersion = "10.0.9"
   
   Seq(
+    "com.github.scopt" %% "scopt" % "3.6.0",
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
     "com.typesafe.akka" %% "akka-http" % akkaHttpVersion
   )
