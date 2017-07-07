@@ -1,5 +1,6 @@
 package com.codiply.barrio
 
 object Main extends App {
-  WebServer.startServer("localhost", 18001)
+  val webServer = new WebServer
+  webServer.startServer("localhost", 18001)
 }
