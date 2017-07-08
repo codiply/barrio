@@ -11,6 +11,7 @@ libraryDependencies ++= {
   Seq(
     "com.github.scopt" %% "scopt" % "3.6.0",
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
-    "com.typesafe.akka" %% "akka-http" % akkaHttpVersion
+    "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
+    "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion
   )
 }

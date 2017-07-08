@@ -1,10 +1,22 @@
 package com.codiply.barrio
 
+import input.PointLoader
+import nn.{ NaiveNeighborhood, Point }
+import web.WebServer
+
 object Main extends App {
-  var config = ArgsParser.parse(args)
+  val config = ArgsParser.parse(args)
   
-  println(config)
+  val points = PointLoader.fromFile(config.file)
   
-//  val webServer = new WebServer
-//  webServer.startServer("localhost", 18001)
+  val distance = (coordinates1: List[Double], coordinates2: List[Double]) =>
+    coordinates1.zip(coordinates2).map(x => {
+      val diff = x._1 - x._2
+      diff * diff
+    }).sum
+  
+  val neighborhood = new NaiveNeighborhood(points, distance)
+  
+  val webServer = new WebServer(neighborhood)
+  webServer.startServer("localhost", 18001)
 }
