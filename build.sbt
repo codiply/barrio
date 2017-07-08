@@ -16,4 +16,5 @@ libraryDependencies ++= {
   )
 }
 
-assemblyJarName in assembly := "barrio.jar"
+assemblyOutputPath in assembly := file("target/barrio/barrio.jar")
+mainClass in assembly := Some("com.codiply.barrio.Main")

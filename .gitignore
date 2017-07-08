@@ -1,10 +1,10 @@
 target/
 /bin/
-/data/
 
 .settings/
 .cache
 .cache-main
 .classpath
 .project
+.idea/
 

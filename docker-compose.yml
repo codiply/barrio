@@ -1,0 +1,32 @@
+version: '2'
+services:
+  barrio-1:
+    build: ./docker/images/barrio/
+    command: java -jar /barrio/barrio.jar -f /data/input-tiny/input-1.txt
+    expose:
+      - 18001
+    ports:
+      - "19001:18001"
+    volumes:
+      - ./target/barrio/:/barrio/
+      - ./data/:/data/
+  barrio-2:
+    build: ./docker/images/barrio/
+    command: java -jar /barrio/barrio.jar -f /data/input-tiny/input-2.txt
+    expose:
+      - 18001
+    ports:
+      - "19002:18001"
+    volumes:
+      - ./target/barrio/:/barrio/
+      - ./data/:/data/
+  barrio-3:
+    build: ./docker/images/barrio/
+    command: java -jar /barrio/barrio.jar -f /data/input-tiny/input-3.txt
+    expose:
+      - 18001
+    ports:
+      - "19003:18001"
+    volumes:
+      - ./target/barrio/:/barrio/
+      - ./data/:/data/ 

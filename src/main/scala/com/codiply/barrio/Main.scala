@@ -18,5 +18,5 @@ object Main extends App {
   val neighborhood = new NaiveNeighborhood(points, distance)
   
   val webServer = new WebServer(neighborhood)
-  webServer.startServer("localhost", 18001)
+  webServer.startServer("0.0.0.0", 18001)
 }
