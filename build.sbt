@@ -15,3 +15,5 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion
   )
 }
+
+assemblyJarName in assembly := "barrio.jar"
