@@ -17,9 +17,10 @@ class WebServer(neighborhood: Neighborhood) extends HttpApp with JsonSupport {
       post {
         decodeRequest {
           entity(as[NeighborsRequest]) { request => {
-              val neighbors = neighborhood.getNeighbors(request.coordinates, request.k)
-              val response = NeighborsResponse(neighbors.map(p => Neighbor(p.id, p.coordinates))).toJson
-              complete(HttpEntity(ContentTypes.`application/json`, response.toString))
+              onSuccess(neighborhood.getNeighbors(request.coordinates, request.k)) { neighbors =>
+                val response = NeighborsResponse(neighbors.map(p => Neighbor(p.id, p.coordinates))).toJson
+                complete(HttpEntity(ContentTypes.`application/json`, response.toString))
+              }
             }
           }        
         }
