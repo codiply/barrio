@@ -7,13 +7,13 @@ import akka.pattern.ask
 import akka.util.Timeout
 
 class NaiveNeighborhood(
+    actorSystem: ActorSystem,
     points: Iterable[Point],
     distance: (List[Double], List[Double]) => Double) extends Neighborhood {
   import NaiveNeighborhoodActor.{GetNeighborsRequest, GetNeighborsResponse}
   
   val allPoints = points.toList
   
-  val actorSystem = ActorSystem("Barrio")
   val neighborhoodActor = actorSystem.actorOf(NaiveNeighborhoodActor.props(allPoints, distance))
   
   // Needed

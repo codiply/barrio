@@ -1,11 +1,16 @@
 package com.codiply.barrio
 
+import akka.actor.ActorSystem
+import akka.http.scaladsl.settings.ServerSettings
+import com.typesafe.config.ConfigFactory
 import input.PointLoader
 import nn.{ NaiveNeighborhood, Point }
 import web.WebServer
 
 object Main extends App {
   val config = ArgsParser.parse(args)
+  
+  val actorSystem = ActorSystem("barrio")
   
   val points = PointLoader.fromFile(config.file)
   
@@ -15,8 +20,8 @@ object Main extends App {
       diff * diff
     }).sum
   
-  val neighborhood = new NaiveNeighborhood(points, distance)
+  val neighborhood = new NaiveNeighborhood(actorSystem, points, distance)
   
   val webServer = new WebServer(neighborhood)
-  webServer.startServer("0.0.0.0", 18001)
+  webServer.startServer("0.0.0.0", 18001, ServerSettings(ConfigFactory.load), Some(actorSystem))
 }
