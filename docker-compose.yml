@@ -54,3 +54,21 @@ services:
     volumes:
       - ./target/barrio/:/barrio/
       - ./data/:/data/ 
+  node-4:
+    hostname: node-4
+    build: ./docker/images/barrio/
+    command: java -jar /barrio/barrio.jar -f /data/input-tiny/input-4.txt
+    environment:
+      - CONTAINER_HOSTNAME=node-4
+      - AKKA_REMOTING_PORT=18011
+      - AKKA_SYSTEM=barrio
+      - AKKA_SEED_HOST=node-1
+      - AKKA_SEED_PORT=18011
+    expose:
+      - 18001
+      - 18011
+    ports:
+      - "19004:18001"
+    volumes:
+      - ./target/barrio/:/barrio/
+      - ./data/:/data/ 
