@@ -3,7 +3,7 @@ package com.codiply.barrio.web
 import akka.http.scaladsl.server.Directives
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import spray.json._
-import com.codiply.barrio.nn.Point
+import com.codiply.barrio.neighbors.Point
   
 final case class NeighborsRequest(k: Int, coordinates: List[Double])
 final case class Neighbor(id: String, coordinates: List[Double])

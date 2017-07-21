@@ -7,7 +7,7 @@ object Point {
   type DistanceMetric = (Coordinates, Coordinates) => Double
   
   object DistanceMetric {
-    val Euclidean = (coordinates1: Coordinates, coordinates2: Coordinates) =>
+    val euclidean = (coordinates1: Coordinates, coordinates2: Coordinates) =>
       coordinates1.zip(coordinates2).map(t => {
         val diff = t._1 - t._2
         diff * diff
