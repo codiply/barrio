@@ -23,15 +23,15 @@ class NeighborhoodCluster (
   
   val points = pointsLoader().toList
   
-  val timeout: FiniteDuration = 5 seconds 
+  val timeout: FiniteDuration = 5 seconds
+  implicit val askTimeout = Timeout(2 * timeout)
   
-  implicit val askTimeout = Timeout(timeout)
   import actorSystem.dispatcher
   
   val nodeActorProps = searchAlgorithm match {
     case SearchAlgorithmEnum.Linear => NeighborhoodPatchActor.props(points, distance)
     // TODO: Take the number of trees from configuration
-    case SearchAlgorithmEnum.Forest => NeighborhoodForestActor.props(points, distance, 3, timeout)
+    case SearchAlgorithmEnum.Forest => NeighborhoodForestActor.props(points, distance, 3, timeout / 2)
   }
       
   val nodeActor = actorSystem.actorOf(nodeActorProps, "neighborhood-node")
