@@ -10,15 +10,10 @@ object NeighborhoodPatchActor {
   def props(points: List[Point], distance: DistanceMetric) = Props(new NeighborhoodPatchActor(points, distance))
 }
 
-object NeighborhoodPatchActorProtocol {
-  final case class GetNeighborsRequest(coordinates: List[Double], k: Int)
-  final case class GetNeighborsResponse(neighbors: List[Point])
-}
-
 class NeighborhoodPatchActor(
     points: List[Point],
     distance: DistanceMetric) extends Actor {
-  import NeighborhoodPatchActorProtocol._
+  import ActorProtocol._
   
   def receive: Receive = {
     case GetNeighborsRequest(coordinates, k) => 

@@ -4,7 +4,7 @@ import akka.actor.Actor
 import akka.actor.ActorRef
 import akka.actor.Actor.Receive
 import akka.actor.Props
-import com.codiply.barrio.neighbors.NeighborhoodPatchActorProtocol._
+import com.codiply.barrio.neighbors.ActorProtocol._
 import com.codiply.barrio.neighbors.Point
 import com.codiply.barrio.neighbors.Point._
 

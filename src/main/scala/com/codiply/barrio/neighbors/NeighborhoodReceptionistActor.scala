@@ -21,7 +21,7 @@ class NeighborhoodReceptionistActor(
     nodeActorRouter: ActorRef,
     distance: DistanceMetric,
     aggregatorTimeout: FiniteDuration) extends Actor with ActorLogging {
-  import NeighborhoodPatchActorProtocol._
+  import ActorProtocol._
   
   val cluster = Cluster(context.system)
 

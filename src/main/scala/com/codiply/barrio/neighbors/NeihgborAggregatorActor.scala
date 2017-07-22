@@ -5,7 +5,7 @@ import scala.concurrent.duration._
 import akka.actor.ActorRef
 import akka.actor.Props
 import com.codiply.barrio.generics.AggregatorActor
-import NeighborhoodPatchActorProtocol._
+import ActorProtocol._
 import Point._
 
 object NeighborAggregatorActor {

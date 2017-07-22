@@ -3,7 +3,7 @@ package com.codiply.barrio.neighbors.forests
 import scala.concurrent.duration._
 import akka.actor.Actor
 import akka.actor.Actor.Receive
-import com.codiply.barrio.neighbors.forests.NeighborhoodPatchActorProtocol._
+import com.codiply.barrio.neighbors.ActorProtocol._
 import com.codiply.barrio.neighbors.NeighborAggregatorActor
 import com.codiply.barrio.neighbors.Point
 import com.codiply.barrio.neighbors.Point._

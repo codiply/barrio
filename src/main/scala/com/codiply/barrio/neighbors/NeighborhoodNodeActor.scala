@@ -6,18 +6,24 @@ import akka.actor.Actor
 import akka.actor.ActorRef
 import akka.actor.Actor.Receive
 import akka.actor.Props
+import com.codiply.barrio.configuration.SearchAlgorithmEnum
 import Point._
 
 object NeighborhoodNodeActor {
-  def props(points: List[Point], distance: DistanceMetric, aggregatorTimeout: FiniteDuration) = 
-    Props(new NeighborhoodNodeActor(points, distance, aggregatorTimeout))
+  def props(
+      searchAlgorithm: SearchAlgorithmEnum.Value,
+      points: List[Point], 
+      distance: DistanceMetric, 
+      aggregatorTimeout: FiniteDuration) = 
+    Props(new NeighborhoodNodeActor(searchAlgorithm, points, distance, aggregatorTimeout))
 }
 
 class NeighborhoodNodeActor(
+    searchAlgorithm: SearchAlgorithmEnum.Value,
     points: List[Point],
     distance: DistanceMetric,
     aggregatorTimeout: FiniteDuration) extends Actor {
-  import NeighborhoodPatchActorProtocol._
+  import ActorProtocol._
   
   val (points1, points2) = points.splitAt(points.length / 2)
   
