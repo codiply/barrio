@@ -18,6 +18,8 @@ class NeighborhoodCluster (
     pointsLoader: () => Iterable[Point],
     distance: DistanceMetric) extends NeighborProvider {
   import ActorProtocol._
+  import linear.NeighborhoodPatchActor
+  import forests.NeighborhoodForestActor
   
   val points = pointsLoader().toList
   
@@ -26,8 +28,13 @@ class NeighborhoodCluster (
   implicit val askTimeout = Timeout(timeout)
   import actorSystem.dispatcher
   
-  val nodeActor = actorSystem.actorOf(
-      NeighborhoodNodeActor.props(searchAlgorithm, points, distance, timeout), "neighborhood-node")
+  val nodeActorProps = searchAlgorithm match {
+    case SearchAlgorithmEnum.Linear => NeighborhoodPatchActor.props(points, distance)
+    // TODO: Take the number of trees from configuration
+    case SearchAlgorithmEnum.Forest => NeighborhoodForestActor.props(points, distance, 3, timeout)
+  }
+      
+  val nodeActor = actorSystem.actorOf(nodeActorProps, "neighborhood-node")
   
   val nodeActorRouter = actorSystem.actorOf(
       ClusterRouterGroup(

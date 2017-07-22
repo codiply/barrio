@@ -3,10 +3,20 @@ package com.codiply.barrio.neighbors.forests
 import scala.concurrent.duration._
 import akka.actor.Actor
 import akka.actor.Actor.Receive
+import akka.actor.Props
 import com.codiply.barrio.neighbors.ActorProtocol._
 import com.codiply.barrio.neighbors.NeighborAggregatorActor
 import com.codiply.barrio.neighbors.Point
 import com.codiply.barrio.neighbors.Point._
+
+object NeighborhoodForestActor {
+  def props(
+    points: List[Point],
+    distance: DistanceMetric,
+    nTrees: Int,
+    aggregatorTimeout: FiniteDuration) = 
+      Props(new NeighborhoodForestActor(points, distance, nTrees, aggregatorTimeout))
+}
 
 class NeighborhoodForestActor(
     points: List[Point],
