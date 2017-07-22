@@ -22,7 +22,8 @@ class NeighborhoodTreeActor(
   case class Children(left: Child, right: Child)
   
   val children = points match {
-    case x::y::tail => {
+    // TODO: make the threshold of 100 points configurable
+    case x::y::tail if tail.take(100).length == 100 => {
       val centroidLeft = x.coordinates
       val centroidRight = y.coordinates
       
