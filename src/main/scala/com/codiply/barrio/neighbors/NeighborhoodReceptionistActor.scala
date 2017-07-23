@@ -27,7 +27,7 @@ class NeighborhoodReceptionistActor(
 
   override def preStart(): Unit = {
     cluster.subscribe(self, initialStateMode = InitialStateAsEvents,
-      classOf[MemberEvent], classOf[UnreachableMember])
+      classOf[MemberEvent], classOf[UnreachableMember], classOf[ReachableMember])
   }
   override def postStop(): Unit = cluster.unsubscribe(self)
   
@@ -46,14 +46,26 @@ class NeighborhoodReceptionistActor(
   } 
   
   def receiveClusterEvents: Receive = {
-    case MemberUp(member) =>
-      this.nodeSet = this.nodeSet + member.address
+    case event @ MemberUp(member) =>
+      this.nodeSet += member.address
       this.updateNodeCount()
-    case UnreachableMember(member) =>
-      this.nodeSet = this.nodeSet - member.address
+    case event @ MemberWeaklyUp(member) =>
+      this.nodeSet += member.address
       this.updateNodeCount()
-    case MemberRemoved(member, previousStatus) =>
-      this.nodeSet = this.nodeSet - member.address
+    case event @ ReachableMember(member) => 
+      this.nodeSet += member.address
+      this.updateNodeCount()
+    case event @ UnreachableMember(member) =>
+      this.nodeSet -= member.address
+      this.updateNodeCount()
+    case event @ MemberLeft(member) =>
+      this.nodeSet -= member.address
+      this.updateNodeCount()
+    case event @ MemberExited(member) =>
+      this.nodeSet -= member.address
+      this.updateNodeCount()
+    case event @ MemberRemoved(member, previousStatus) =>
+      this.nodeSet -= member.address
       this.updateNodeCount()
   }
   
