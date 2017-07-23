@@ -24,13 +24,16 @@ class AggregatorActor[TAggregate, TResponse:  ClassTag](
   var aggregate: TAggregate = initialValue
   var outstandingResponses = expectedNumberOfResponses
  
-  context.system.scheduler.scheduleOnce(timeout, self, DoSendAggregate)
+  val timeoutCancellable = context.system.scheduler.scheduleOnce(timeout, self, DoSendAggregate)
   
   def receive: Receive = {
     case response: TResponse =>
       this.aggregate = folder(this.aggregate, response)
       this.outstandingResponses -= 1
-      if (this.outstandingResponses <= 0) self ! DoSendAggregate
+      if (this.outstandingResponses <= 0) {
+        timeoutCancellable.cancel()
+        self ! DoSendAggregate
+      }
     case DoSendAggregate =>
       val response = mapper(this.aggregate)
       responseRecipient ! response
