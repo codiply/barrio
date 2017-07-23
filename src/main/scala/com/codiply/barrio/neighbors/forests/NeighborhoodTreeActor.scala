@@ -1,5 +1,6 @@
 package com.codiply.barrio.neighbors.forests
 
+import scala.util.Random
 import akka.actor.Actor
 import akka.actor.ActorRef
 import akka.actor.Actor.Receive
@@ -21,11 +22,12 @@ class NeighborhoodTreeActor(
   case class Child(centroid: Coordinates, actorRef: ActorRef)
   case class Children(left: Child, right: Child)
   
-  val children = points match {
+  val children =
     // TODO: make the threshold of 100 points configurable
-    case x::y::tail if tail.take(100).length == 100 => {
-      val centroidLeft = x.coordinates
-      val centroidRight = y.coordinates
+    if (points.take(101).length == 101) {
+      val centroids = Random.shuffle(points).take(2).toArray
+      val centroidLeft = centroids(0).coordinates
+      val centroidRight = centroids(1).coordinates
       
       val belongsToLeft = (p: Point) => 
         distance(centroidLeft, p.coordinates) < distance(centroidRight, p.coordinates)
@@ -39,10 +41,7 @@ class NeighborhoodTreeActor(
       
       Some(Children(left = childLeft, right = childRight))
     }
-    case _ => { 
-      None
-    }
-  }
+    else None
   
   def receive: Receive = {
     case request @ GetNeighborsRequest(coordinates, k) => {
