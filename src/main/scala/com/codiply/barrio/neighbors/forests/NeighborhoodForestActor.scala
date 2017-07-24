@@ -8,6 +8,7 @@ import com.codiply.barrio.neighbors.ActorProtocol._
 import com.codiply.barrio.neighbors.NeighborAggregatorActor
 import com.codiply.barrio.neighbors.Point
 import com.codiply.barrio.neighbors.Point._
+import com.codiply.barrio.neighbors.NodeStats
 
 object NeighborhoodForestActor {
   def props(
@@ -33,6 +34,21 @@ class NeighborhoodForestActor(
       val aggregator = context.actorOf(NeighborAggregatorActor.props(
           coordinates, k, distance, originalSender, nTrees, aggregatorTimeout))
       trees.foreach(_.tell(request, aggregator))
+    }
+    case GetNodeStatsRequest => {
+      val runtime = Runtime.getRuntime
+
+      val mb = 1024 * 1024
+      val freeMemoryMB = runtime.freeMemory.toDouble / mb;
+      val totalMemoryMB = runtime.totalMemory.toDouble / mb;
+      val maxMemoryMB = runtime.maxMemory.toDouble /mb;
+      
+      sender ! GetNodeStatsResponse(NodeStats(
+          freeMemoryMB = freeMemoryMB, 
+          totalMemoryMB = totalMemoryMB,
+          maxMemoryMB = maxMemoryMB, 
+          usedMemoryMB = totalMemoryMB - freeMemoryMB
+      ))
     }
   }
 }

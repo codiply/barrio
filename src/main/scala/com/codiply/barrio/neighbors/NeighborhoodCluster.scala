@@ -51,4 +51,8 @@ class NeighborhoodCluster (
   def getNeighbors(coordinates: List[Double], k: Int): Future[List[Point]] = {
     (receptionistActor ? GetNeighborsRequest(coordinates, k)).mapTo[GetNeighborsResponse].map(_.neighbors)
   }
+  
+  def getStats(): Future[ClusterStats] = {
+    (receptionistActor ? GetClusterStatsRequest).mapTo[GetClusterStatsResponse].map(_.stats)
+  }
 }

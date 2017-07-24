@@ -13,6 +13,18 @@ class WebServer(neighborhood: NeighborProvider) extends HttpApp with JsonSupport
         complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Hello from Barrio!</h1>"))
       }
     } ~ 
+    path("stats") {
+      get {
+        onSuccess(neighborhood.getStats()) { stats =>
+          val response = ClusterStatsJson(stats.nodeStats.map { s => NodeStatsJson(
+              freeMemoryMB = s.freeMemoryMB,
+              totalMemoryMB = s.totalMemoryMB,
+              maxMemoryMB = s.maxMemoryMB,
+              usedMemoryMB = s.usedMemoryMB) }).toJson
+          complete(HttpEntity(ContentTypes.`application/json`, response.toString))
+        }
+      }
+    } ~ 
     path("neighbors") {
       post {
         decodeRequest {
