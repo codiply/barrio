@@ -1,6 +1,7 @@
 package com.codiply.barrio.neighbors.forests
 
 import scala.util.Random
+import scala.concurrent.duration._
 import akka.actor.Actor
 import akka.actor.ActorRef
 import akka.actor.Actor.Receive
@@ -14,11 +15,17 @@ object NeighborhoodTreeActor {
     Props(new NeighborhoodTreeActor(points, distance))
 }
 
+object NeighborhoodTreeActorProtocol {
+  final case class GetDepthsRequest(aggregatorTimeout: FiniteDuration)
+  final case class GetDepthsResponse(depths: List[Int])
+}
+
 class NeighborhoodTreeActor(
     points: List[Point],
     distance: DistanceMetric) extends Actor {
   import NeighborhoodTreeActor._
-  
+  import NeighborhoodTreeActorProtocol._
+
   case class Child(centroid: Coordinates, actorRef: ActorRef)
   case class Children(left: Child, right: Child)
   
@@ -44,7 +51,7 @@ class NeighborhoodTreeActor(
     else None
   
   def receive: Receive = {
-    case request @ GetNeighborsRequest(coordinates, k) => {
+    case request @ GetNeighborsRequest(coordinates, k, timeout) => {
       children match {
         case Some(Children(Child(centroidLeft, treeLeft), Child(centroidRight, treeRight))) => {
           val closerToLeft = distance(centroidLeft, coordinates) < distance(centroidRight, coordinates)
@@ -54,6 +61,20 @@ class NeighborhoodTreeActor(
         case None => {
           val neighbors = points.sortBy(p => distance(coordinates, p.coordinates)).take(k)
           sender ! GetNeighborsResponse(neighbors)
+        }
+      }
+    }
+    case request @ GetDepthsRequest(timeout) => {
+      children match {
+        case Some(ch) => {
+          val originalSender = sender
+          val aggregator = context.actorOf(DepthsAggregatorActor.props(
+             originalSender, 2, timeout))
+          ch.left.actorRef.forward(request, aggregator)
+          ch.right.actorRef.forward(request, aggregator)
+        }
+        case None => {
+          sender ! GetDepthsResponse(List(0))
         }
       }
     }

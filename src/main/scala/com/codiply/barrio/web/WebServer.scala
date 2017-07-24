@@ -4,6 +4,8 @@ import akka.http.scaladsl.model.{ ContentTypes, HttpEntity }
 import akka.http.scaladsl.server.HttpApp
 import akka.http.scaladsl.server.Route
 import com.codiply.barrio.neighbors.NeighborProvider
+import com.codiply.barrio.neighbors.ClusterStats
+import com.codiply.barrio.neighbors.NodeStats
 import spray.json._
 
 class WebServer(neighborhood: NeighborProvider) extends HttpApp with JsonSupport {    
@@ -15,12 +17,13 @@ class WebServer(neighborhood: NeighborProvider) extends HttpApp with JsonSupport
     } ~ 
     path("stats") {
       get {
-        onSuccess(neighborhood.getStats()) { stats =>
-          val response = ClusterStatsJson(stats.nodeStats.map { s => NodeStatsJson(
+        onSuccess(neighborhood.getStats()) { case stats: ClusterStats =>
+          val response = ClusterStatsJson(stats.nodeStats.map { s: NodeStats => NodeStatsJson(
               freeMemoryMB = s.freeMemoryMB,
               totalMemoryMB = s.totalMemoryMB,
               maxMemoryMB = s.maxMemoryMB,
-              usedMemoryMB = s.usedMemoryMB) }).toJson
+              usedMemoryMB = s.usedMemoryMB,
+              treeStats = s.treeStats.map { x => TreeStatsJson(minDepth = x.minDepth, maxDepth = x.maxDepth) }) } ).toJson
           complete(HttpEntity(ContentTypes.`application/json`, response.toString))
         }
       }

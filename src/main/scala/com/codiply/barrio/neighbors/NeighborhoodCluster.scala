@@ -23,15 +23,12 @@ class NeighborhoodCluster (
   
   val points = pointsLoader().toList
   
-  val timeout: FiniteDuration = 5 seconds
-  implicit val askTimeout = Timeout(2 * timeout)
-  
   import actorSystem.dispatcher
   
   val nodeActorProps = searchAlgorithm match {
     case SearchAlgorithmEnum.Linear => NeighborhoodPatchActor.props(points, distance)
     // TODO: Take the number of trees from configuration
-    case SearchAlgorithmEnum.Forest => NeighborhoodForestActor.props(points, distance, 3, timeout / 2)
+    case SearchAlgorithmEnum.Forest => NeighborhoodForestActor.props(points, distance, 3)
   }
       
   val nodeActor = actorSystem.actorOf(nodeActorProps, "neighborhood-node")
@@ -46,13 +43,18 @@ class NeighborhoodCluster (
               useRole = None)).props(), name = "neighborhood-node-router")
   
   val receptionistActor = actorSystem.actorOf(
-      NeighborhoodReceptionistActor.props(nodeActorRouter, distance, timeout), "receptionist") 
+      NeighborhoodReceptionistActor.props(nodeActorRouter, distance), "receptionist") 
       
   def getNeighbors(coordinates: List[Double], k: Int): Future[List[Point]] = {
-    (receptionistActor ? GetNeighborsRequest(coordinates, k)).mapTo[GetNeighborsResponse].map(_.neighbors)
+    val timeout: FiniteDuration = 5 seconds
+    implicit val askTimeout = Timeout(2 * timeout)
+    
+    (receptionistActor ? GetNeighborsRequest(coordinates, k , timeout)).mapTo[GetNeighborsResponse].map(_.neighbors)
   }
   
   def getStats(): Future[ClusterStats] = {
-    (receptionistActor ? GetClusterStatsRequest).mapTo[GetClusterStatsResponse].map(_.stats)
+    val timeout: FiniteDuration = 3 minutes
+    implicit val askTimeout = Timeout(2 * timeout)
+    (receptionistActor ? GetClusterStatsRequest(timeout)).mapTo[GetClusterStatsResponse].map(_.stats)
   }
 }

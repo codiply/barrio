@@ -17,7 +17,7 @@ class NeighborhoodPatchActor(
   import com.codiply.barrio.neighbors.ActorProtocol._
   
   def receive: Receive = {
-    case GetNeighborsRequest(coordinates, k) => 
+    case GetNeighborsRequest(coordinates, k, timeout) => 
       val neighbors = points.sortBy(p => distance(p.coordinates, coordinates)).take(k)
       sender ! GetNeighborsResponse(neighbors)
   }
