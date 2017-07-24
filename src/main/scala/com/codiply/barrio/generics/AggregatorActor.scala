@@ -30,7 +30,7 @@ class AggregatorActor[TAggregate, TResponse:  ClassTag](
     case response: TResponse =>
       this.aggregate = folder(this.aggregate, response)
       this.outstandingResponses -= 1
-      if (this.outstandingResponses <= 0) {
+      if (this.outstandingResponses <= 0 && !timeoutCancellable.isCancelled) {
         timeoutCancellable.cancel()
         self ! DoSendAggregate
       }
