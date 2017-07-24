@@ -13,7 +13,7 @@ object NeighborAggregatorActor {
       coordinates: Coordinates,
       kNeighbors: Int,
       distance: DistanceMetric,
-      responseRecepient: ActorRef,
+      responseRecipient: ActorRef,
       expectedNumberOfResponses: Int,
       timeout: FiniteDuration) = {
         val initialValue = Nil
@@ -21,6 +21,6 @@ object NeighborAggregatorActor {
           (neighbors ++ response.neighbors).groupBy(_.id).map(_._2.head).toList.sortBy(p => 
             distance(coordinates, p.coordinates)).take(kNeighbors)
         val mapper = (neighbors: List[Point]) => GetNeighborsResponse(neighbors)
-        Props(new AggregatorActor(responseRecepient, initialValue, folder, mapper, expectedNumberOfResponses, timeout))
+        Props(new AggregatorActor(responseRecipient, initialValue, folder, mapper, expectedNumberOfResponses, timeout))
       }
 }
