@@ -11,11 +11,11 @@ object AggregatorActorProtocol {
   object DoSendAggregate
 }
 
-class AggregatorActor[TAggregate, TResponse:  ClassTag](
+class AggregatorActor[TAggregate, TResponseIn:  ClassTag, TResponseOut](
     responseRecipient: ActorRef,
     initialValue: TAggregate,
-    folder: (TAggregate, TResponse) => TAggregate,
-    mapper: TAggregate => TResponse,
+    folder: (TAggregate, TResponseIn) => TAggregate,
+    mapper: TAggregate => TResponseOut,
     expectedNumberOfResponses: Int,
     timeout: FiniteDuration) extends Actor {
   import AggregatorActorProtocol._
@@ -27,7 +27,7 @@ class AggregatorActor[TAggregate, TResponse:  ClassTag](
   val timeoutCancellable = context.system.scheduler.scheduleOnce(timeout, self, DoSendAggregate)
   
   def receive: Receive = {
-    case response: TResponse =>
+    case response: TResponseIn =>
       this.aggregate = folder(this.aggregate, response)
       this.outstandingResponses -= 1
       if (this.outstandingResponses <= 0 && !timeoutCancellable.isCancelled) {
