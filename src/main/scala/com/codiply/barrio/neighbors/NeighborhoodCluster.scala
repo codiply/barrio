@@ -9,29 +9,21 @@ import akka.cluster.routing.ClusterRouterGroupSettings
 import akka.pattern.ask
 import akka.routing.BroadcastGroup
 import akka.util.Timeout
-import com.codiply.barrio.configuration.SearchAlgorithmEnum
 import Point._
 
 class NeighborhoodCluster (
     actorSystem: ActorSystem,
-    searchAlgorithm: SearchAlgorithmEnum.Value,
     pointsLoader: () => Iterable[Point],
     distance: DistanceMetric) extends NeighborProvider {
   import ActorProtocol._
-  import linear.NeighborhoodPatchActor
   import forests.NeighborhoodForestActor
   
   val points = pointsLoader().toList
   
   import actorSystem.dispatcher
-  
-  val nodeActorProps = searchAlgorithm match {
-    case SearchAlgorithmEnum.Linear => NeighborhoodPatchActor.props(points, distance)
-    // TODO: Take the number of trees from configuration
-    case SearchAlgorithmEnum.Forest => NeighborhoodForestActor.props(points, distance, 3)
-  }
       
-  val nodeActor = actorSystem.actorOf(nodeActorProps, "neighborhood-node")
+  // TODO: Take the number of trees from configuration
+  val nodeActor = actorSystem.actorOf(NeighborhoodForestActor.props(points, distance, 3), "neighborhood-node")
   
   val nodeActorRouter = actorSystem.actorOf(
       ClusterRouterGroup(

@@ -22,7 +22,7 @@ object Main extends App {
   
   val distance = DistanceMetric.euclidean
   
-  val neighborhood = new NeighborhoodCluster(actorSystem, config.algo, pointsLoader, distance)
+  val neighborhood = new NeighborhoodCluster(actorSystem, pointsLoader, distance)
   
   val webServer = new WebServer(neighborhood)
   // TODO: get the port from the environment
