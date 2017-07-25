@@ -46,7 +46,7 @@ class NeighborhoodReceptionistActor(
       val originalSender = sender
       val aggregator = context.actorOf(NodeStatsAggregatorActor.props(
           originalSender, nodeCount, aggregatorTimeout))
-      nodeActorRouter.tell(GetNodeStatsRequest, aggregator)
+      nodeActorRouter.tell(GetNodeStatsRequest(aggregatorTimeout), aggregator)
     }
   } 
   

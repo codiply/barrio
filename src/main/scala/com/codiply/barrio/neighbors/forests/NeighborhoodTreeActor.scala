@@ -70,8 +70,8 @@ class NeighborhoodTreeActor(
           val originalSender = sender
           val aggregator = context.actorOf(DepthsAggregatorActor.props(
              originalSender, 2, timeout))
-          ch.left.actorRef.forward(request, aggregator)
-          ch.right.actorRef.forward(request, aggregator)
+          ch.left.actorRef.tell(request, aggregator)
+          ch.right.actorRef.tell(request, aggregator)
         }
         case None => {
           sender ! GetDepthsResponse(List(0))
