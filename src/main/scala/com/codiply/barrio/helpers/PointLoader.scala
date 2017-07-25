@@ -1,4 +1,4 @@
-package com.codiply.barrio.input
+package com.codiply.barrio.helpers
 
 import scala.io.Source
 import com.codiply.barrio.neighbors.Point

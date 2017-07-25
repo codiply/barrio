@@ -3,12 +3,12 @@ package com.codiply.barrio
 import akka.actor.ActorSystem
 import akka.http.scaladsl.settings.ServerSettings
 import com.typesafe.config.ConfigFactory
-import configuration._
-import input.PointLoader
+import helpers.PointLoader
+import helpers.ArgsConfig
+import helpers.ArgsParser
 import neighbors.NeighborhoodCluster
 import neighbors.Point
 import web.WebServer
-import com.codiply.barrio.configuration.ArgsParser
 
 object Main extends App {
   import neighbors.Point.DistanceMetric

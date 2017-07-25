@@ -1,4 +1,4 @@
-package com.codiply.barrio.configuration
+package com.codiply.barrio.helpers
 
 import scopt.OptionParser
 
