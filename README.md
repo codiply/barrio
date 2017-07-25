@@ -1,4 +1,9 @@
+
+[![Travis CI Status](https://travis-ci.org/codiply/barrio.svg?branch=master)](https://travis-ci.org/codiply/barrio)
+
 ## Barrio
+
+Distributed approximate nearest neighbor search
 
 ### Prerequisites
 
