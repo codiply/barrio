@@ -14,7 +14,7 @@ Distributed approximate nearest neighbor search
 
 Run
 
-    sbt "run -f path-to-input-data-filename"
+    sbt "run -f path-to-input-data-file"
     
 
 You can make a `POST` request to [http://localhost:18001/neighbors](http://localhost:18001/neighbors).
@@ -25,14 +25,13 @@ For example, to get the 3 nearest neighbors from the origin, the request is
       "k": 3
     }
 
-### Run cluster
+### Run cluster in docker
 
 First package the whole project into one single `.jar`
 
     sbt assembly
     
 and then start the cluster
-
 
     docker-compose up -d
     
@@ -43,3 +42,11 @@ Seee the logs with
 Bring the cluster down with
 
     docker-compose down 
+    
+### Environment variables for node configuration
+
+- AKKA_SYSTEM: a consistent name across nodes that belong to one cluster
+- CONTAINER_HOSTNAME: the hostname of this node
+- AKKA_REMOTING_PORT: the port to be used by AKKA on this node
+- AKKA_SEED_HOST: the hostname of the seed node
+- AKKA_SEED_PORT: the port used by AKKA on the seed node
