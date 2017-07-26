@@ -29,15 +29,21 @@ class NeighborhoodForestActor(
     distance: DistanceMetric,
     nTrees: Int) extends Actor with ActorLogging {
   import ActorProtocol._
-  import NeighborhoodTreeActorProtocol._
+  import com.codiply.barrio.neighbors.MemoryStats
+  import com.codiply.barrio.neighbors.TreeStats
+  import com.codiply.barrio.neighbors.NodeStats
   
   val timeout: FiniteDuration = 5 seconds
   implicit val askTimeout = Timeout(2 * timeout)
   
   import context.dispatcher
   
-  val trees = (1 to nTrees).map(i => 
-    context.actorOf(NeighborhoodTreeActor.props(points, distance), "tree-" + i)).toList
+  val statsActor = context.actorOf(NeihborhoodForestStatsActor.props(), "stats-actor")
+  
+  val trees = (1 to nTrees).map(i => {
+    val name = "tree-" + i
+    context.actorOf(NeighborhoodTreeActor.props(name, points, distance, 0, statsActor), name)
+  }).toList
   
   var initialisedTreesCount = 0
   var initialisedTrees: List[ActorRef] = Nil
@@ -63,21 +69,18 @@ class NeighborhoodForestActor(
       val totalMemoryMB = runtime.totalMemory.toDouble / mb;
       val maxMemoryMB = runtime.maxMemory.toDouble /mb;
       
-      val treeStatsFuture = Future.sequence(trees.map(_ ? GetDepthsRequest(timeout)).map {
-        _.mapTo[GetDepthsResponse].map { _.depths }.map { depths =>
-          TreeStats(minDepth = depths.min, maxDepth = depths.max)
-        }
-      })
+      val treeStatsResponse = (statsActor ? GetNeighborhoodTreeStatsRequest).mapTo[GetNeighborhoodTreeStatsResponse]
       
       val originalSender = sender
       
-      treeStatsFuture.onSuccess { case treeStats: List[TreeStats] =>
+      treeStatsResponse.map{ _.treeStats } onSuccess { case treeStats: Map[String, TreeStats] =>
         originalSender ! GetNodeStatsResponse(NodeStats(
-            freeMemoryMB = freeMemoryMB, 
-            totalMemoryMB = totalMemoryMB,
-            maxMemoryMB = maxMemoryMB, 
-            usedMemoryMB = totalMemoryMB - freeMemoryMB,
-            treeStats = treeStats
+            memory = MemoryStats(
+                freeMemoryMB = freeMemoryMB, 
+                totalMemoryMB = totalMemoryMB,
+                 maxMemoryMB = maxMemoryMB, 
+              usedMemoryMB = totalMemoryMB - freeMemoryMB),
+            trees = treeStats
         ))
       }
     }

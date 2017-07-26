@@ -12,21 +12,23 @@ import com.codiply.barrio.neighbors.Point
 import com.codiply.barrio.neighbors.Point._
 
 object NeighborhoodTreeActor {
-  def props(points: List[Point], distance: DistanceMetric) = 
-    Props(new NeighborhoodTreeActor(points, distance))
-}
-
-object NeighborhoodTreeActorProtocol {
-  final case class GetDepthsRequest(aggregatorTimeout: FiniteDuration)
-  final case class GetDepthsResponse(depths: List[Int])
+  def props(
+      rootTreeName: String,
+      points: List[Point], 
+      distance: DistanceMetric,
+      thisRootDepth: Int,
+      statsActor: ActorRef) = 
+    Props(new NeighborhoodTreeActor(rootTreeName, points, distance, thisRootDepth, statsActor))
 }
 
 class NeighborhoodTreeActor(
+    rootTreeName: String,
     points: List[Point],
-    distance: DistanceMetric) extends Actor with ActorLogging {
+    distance: DistanceMetric,
+    thisRootDepth: Int,
+    statsActor: ActorRef) extends Actor with ActorLogging {
   import ActorProtocol._
   import NeighborhoodTreeActor._
-  import NeighborhoodTreeActorProtocol._
 
   case class Child(centroid: Coordinates, actorRef: ActorRef)
   case class Children(left: Child, right: Child)
@@ -44,8 +46,11 @@ class NeighborhoodTreeActor(
         distance(centroidLeft, p.coordinates) < distance(centroidRight, p.coordinates)
       val (pointsLeft, pointsRight) = points.partition(belongsToLeft)
       
-      val childLeftActorRef = context.actorOf(props(pointsLeft, distance))
-      val childRightActorRef = context.actorOf(props(pointsRight, distance))
+      def createChildActor(pts: List[Point]) =
+        context.actorOf(props(rootTreeName, pts, distance, thisRootDepth + 1, statsActor))
+      
+      val childLeftActorRef = createChildActor(pointsLeft)
+      val childRightActorRef = createChildActor(pointsRight)
       
       val childLeft = Child(centroidLeft, childLeftActorRef)
       val childRight = Child(centroidRight, childRightActorRef)
@@ -59,6 +64,7 @@ class NeighborhoodTreeActor(
   
   if (isLeaf) {
     signalTreeInitialised()
+    sendStats()
   } else {
     context.become(receive orElse receiveNode)
   }
@@ -79,20 +85,6 @@ class NeighborhoodTreeActor(
         }
       }
     }
-    case request @ GetDepthsRequest(timeout) => {
-      children match {
-        case Some(ch) => {
-          val originalSender = sender
-          val aggregator = context.actorOf(DepthsAggregatorActor.props(
-             originalSender, 2, timeout))
-          ch.left.actorRef.tell(request, aggregator)
-          ch.right.actorRef.tell(request, aggregator)
-        }
-        case None => {
-          sender ! GetDepthsResponse(List(0))
-        }
-      }
-    }
   }
   
   def receiveNode: Receive = {
@@ -104,5 +96,12 @@ class NeighborhoodTreeActor(
   
   def signalTreeInitialised() = {
     context.parent ! TreeInitialised
+  }
+  
+  def sendStats() = {
+    statsActor ! NeighborhoodTreeLeafStats(
+        treeName = rootTreeName, 
+        depth = thisRootDepth, 
+        pointCount = points.length)
   }
 }

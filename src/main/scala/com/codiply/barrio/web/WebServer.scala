@@ -6,6 +6,7 @@ import akka.http.scaladsl.server.Route
 import com.codiply.barrio.neighbors.NeighborProvider
 import com.codiply.barrio.neighbors.ClusterStats
 import com.codiply.barrio.neighbors.NodeStats
+import JsonSupport._
 import spray.json._
 
 class WebServer(neighborhood: NeighborProvider) extends HttpApp with JsonSupport {    
@@ -18,12 +19,7 @@ class WebServer(neighborhood: NeighborProvider) extends HttpApp with JsonSupport
     path("stats") {
       get {
         onSuccess(neighborhood.getStats()) { case stats: ClusterStats =>
-          val response = ClusterStatsJson(stats.nodeStats.map { s: NodeStats => NodeStatsJson(
-              freeMemoryMB = s.freeMemoryMB,
-              totalMemoryMB = s.totalMemoryMB,
-              maxMemoryMB = s.maxMemoryMB,
-              usedMemoryMB = s.usedMemoryMB,
-              treeStats = s.treeStats.map { x => TreeStatsJson(minDepth = x.minDepth, maxDepth = x.maxDepth) }) } ).toJson
+          val response = Mapping.mapClusterStats(stats).toJson
           complete(HttpEntity(ContentTypes.`application/json`, response.toString))
         }
       }
@@ -31,11 +27,10 @@ class WebServer(neighborhood: NeighborProvider) extends HttpApp with JsonSupport
     path("neighbors") {
       post {
         decodeRequest {
-          entity(as[NeighborsRequest]) { request => {
-              onSuccess(neighborhood.getNeighbors(request.coordinates, request.k)) { neighbors =>
-                val response = NeighborsResponse(neighbors.map(p => Neighbor(p.id, p.coordinates))).toJson
-                complete(HttpEntity(ContentTypes.`application/json`, response.toString))
-              }
+          entity(as[NeighborsRequestJson]) { request =>
+            onSuccess(neighborhood.getNeighbors(request.coordinates, request.k)) { neighbors =>
+              val response = NeighborsResponseJson(neighbors.map(p => NeighborJson(p.id, p.coordinates))).toJson
+              complete(HttpEntity(ContentTypes.`application/json`, response.toString))
             }
           }        
         }
