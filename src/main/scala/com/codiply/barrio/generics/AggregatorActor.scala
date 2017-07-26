@@ -6,6 +6,7 @@ import scala.reflect.ClassTag
 import akka.actor.Actor
 import akka.actor.Actor.Receive
 import akka.actor.ActorRef
+import akka.actor.Cancellable
 
 object AggregatorActorProtocol {
   object DoSendAggregate
@@ -13,7 +14,7 @@ object AggregatorActorProtocol {
 
 class AggregatorActor[TAggregate, TResponseIn:  ClassTag, TResponseOut](
     responseRecipient: ActorRef,
-    initialValue: TAggregate,
+    initialAggregateValue: TAggregate,
     folder: (TAggregate, TResponseIn) => TAggregate,
     mapper: TAggregate => TResponseOut,
     expectedNumberOfResponses: Int,
@@ -21,22 +22,31 @@ class AggregatorActor[TAggregate, TResponseIn:  ClassTag, TResponseOut](
   import AggregatorActorProtocol._
   import context.dispatcher
   
-  var aggregate: TAggregate = initialValue
-  var outstandingResponses = expectedNumberOfResponses
+  var currentAggregateValue: TAggregate = initialAggregateValue
+  var outstandingIncomingResponses = expectedNumberOfResponses
+  
+  var timeoutCancellable: Option[Cancellable] = None
  
-  val timeoutCancellable = context.system.scheduler.scheduleOnce(timeout, self, DoSendAggregate)
+  if (expectedNumberOfResponses <= 0) {
+    sendAggregate()
+  } else {
+    timeoutCancellable = Some(context.system.scheduler.scheduleOnce(timeout, self, DoSendAggregate))
+  }
   
   def receive: Receive = {
-    case response: TResponseIn =>
-      this.aggregate = folder(this.aggregate, response)
-      this.outstandingResponses -= 1
-      if (this.outstandingResponses <= 0 && !timeoutCancellable.isCancelled) {
-        timeoutCancellable.cancel()
-        self ! DoSendAggregate
+    case incomingResponse: TResponseIn =>
+      currentAggregateValue = folder(currentAggregateValue, incomingResponse)
+      outstandingIncomingResponses -= 1
+      if (outstandingIncomingResponses <= 0) {
+        timeoutCancellable.foreach { _.cancel() }
+        sendAggregate()
       }
-    case DoSendAggregate =>
-      val response = mapper(this.aggregate)
-      responseRecipient ! response
-      context.stop(self)
+    case DoSendAggregate => sendAggregate()
+  }
+  
+  def sendAggregate() = {
+    val response = mapper(currentAggregateValue)
+    responseRecipient ! response
+    context.stop(self)
   }
 }

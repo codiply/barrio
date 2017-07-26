@@ -4,6 +4,7 @@ import scala.util.Random
 import scala.concurrent.duration._
 import akka.actor.Actor
 import akka.actor.ActorRef
+import akka.actor.ActorLogging
 import akka.actor.Actor.Receive
 import akka.actor.Props
 import com.codiply.barrio.neighbors.ActorProtocol._
@@ -22,12 +23,15 @@ object NeighborhoodTreeActorProtocol {
 
 class NeighborhoodTreeActor(
     points: List[Point],
-    distance: DistanceMetric) extends Actor {
+    distance: DistanceMetric) extends Actor with ActorLogging {
+  import ActorProtocol._
   import NeighborhoodTreeActor._
   import NeighborhoodTreeActorProtocol._
 
   case class Child(centroid: Coordinates, actorRef: ActorRef)
   case class Children(left: Child, right: Child)
+  
+  var initialisedChildrenCount = 0
   
   val children =
     // TODO: make the threshold of 100 points configurable
@@ -49,8 +53,19 @@ class NeighborhoodTreeActor(
       Some(Children(left = childLeft, right = childRight))
     }
     else None
+    
+    
+  val isLeaf = !children.isDefined
   
-  def receive: Receive = {
+  if (isLeaf) {
+    signalTreeInitialised()
+  } else {
+    context.become(receive orElse receiveNode)
+  }
+  
+  def receive: Receive = receiveCommon
+  
+  def receiveCommon: Receive = {
     case request @ GetNeighborsRequest(coordinates, k, timeout) => {
       children match {
         case Some(Children(Child(centroidLeft, treeLeft), Child(centroidRight, treeRight))) => {
@@ -78,5 +93,16 @@ class NeighborhoodTreeActor(
         }
       }
     }
+  }
+  
+  def receiveNode: Receive = {
+    case TreeInitialised => {
+      initialisedChildrenCount += 1
+      if (initialisedChildrenCount == 2) signalTreeInitialised()
+    }
+  }
+  
+  def signalTreeInitialised() = {
+    context.parent ! TreeInitialised
   }
 }
