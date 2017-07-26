@@ -3,6 +3,8 @@ package com.codiply.barrio.neighbors.forests
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import akka.actor.Actor
+import akka.actor.ActorLogging
+import akka.actor.ActorRef
 import akka.actor.Actor.Receive
 import akka.actor.Props
 import akka.pattern.ask
@@ -25,7 +27,8 @@ object NeighborhoodForestActor {
 class NeighborhoodForestActor(
     points: List[Point],
     distance: DistanceMetric,
-    nTrees: Int) extends Actor {
+    nTrees: Int) extends Actor with ActorLogging {
+  import ActorProtocol._
   import NeighborhoodTreeActorProtocol._
   
   val timeout: FiniteDuration = 5 seconds
@@ -36,12 +39,21 @@ class NeighborhoodForestActor(
   val trees = (1 to nTrees).map(i => 
     context.actorOf(NeighborhoodTreeActor.props(points, distance), "tree-" + i)).toList
   
+  var initialisedTreesCount = 0
+  var initialisedTrees: List[ActorRef] = Nil
+    
   def receive: Receive = {
+    case TreeInitialised => {
+      if (trees.contains(sender)) {
+        initialisedTreesCount += 1
+        initialisedTrees = sender +: initialisedTrees
+      }
+    }
     case request @ GetNeighborsRequest(coordinates, k, timeout) => {
       val originalSender = sender
       val aggregator = context.actorOf(NeighborAggregatorActor.props(
-          coordinates, k, distance, originalSender, nTrees, timeout))
-      trees.foreach(_.tell(request, aggregator))
+          coordinates, k, distance, originalSender, initialisedTreesCount, timeout))
+      initialisedTrees.foreach(_.tell(request, aggregator))
     }
     case GetNodeStatsRequest(timeout) => {
       val runtime = Runtime.getRuntime
