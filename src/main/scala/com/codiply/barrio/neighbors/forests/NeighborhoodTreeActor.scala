@@ -15,27 +15,29 @@ object NeighborhoodTreeActor {
   def props(
       rootTreeName: String,
       points: List[Point], 
-      distance: DistanceMetric,
+      metric: DistanceMetric,
       thisRootDepth: Int,
       statsActor: ActorRef) = 
-    Props(new NeighborhoodTreeActor(rootTreeName, points, distance, thisRootDepth, statsActor))
+    Props(new NeighborhoodTreeActor(rootTreeName, points, metric, thisRootDepth, statsActor))
 }
 
 class NeighborhoodTreeActor(
     rootTreeName: String,
     points: List[Point],
-    distance: DistanceMetric,
+    metric: DistanceMetric,
     thisRootDepth: Int,
     statsActor: ActorRef) extends Actor with ActorLogging {
   import ActorProtocol._
+  import NeighborhoodForestSearchActorProtocol._
   import NeighborhoodTreeActor._
 
   case class Child(centroid: Coordinates, actorRef: ActorRef)
   case class Children(left: Child, right: Child)
+  case class NodeSettings(children: Children, easyDistanceToBoundary: Coordinates => Double)
   
   var initialisedChildrenCount = 0
   
-  val children =
+  val nodeSettings =
     // TODO: make the threshold of 100 points configurable
     if (points.take(101).length == 101) {
       val centroids = Random.shuffle(points).take(2).toArray
@@ -43,11 +45,11 @@ class NeighborhoodTreeActor(
       val centroidRight = centroids(1).coordinates
       
       val belongsToLeft = (p: Point) => 
-        distance(centroidLeft, p.coordinates) < distance(centroidRight, p.coordinates)
+        metric.easyDistance(centroidLeft, p.coordinates) < metric.easyDistance(centroidRight, p.coordinates)
       val (pointsLeft, pointsRight) = points.partition(belongsToLeft)
       
       def createChildActor(pts: List[Point]) =
-        context.actorOf(props(rootTreeName, pts, distance, thisRootDepth + 1, statsActor))
+        context.actorOf(props(rootTreeName, pts, metric, thisRootDepth + 1, statsActor))
       
       val childLeftActorRef = createChildActor(pointsLeft)
       val childRightActorRef = createChildActor(pointsRight)
@@ -55,12 +57,14 @@ class NeighborhoodTreeActor(
       val childLeft = Child(centroidLeft, childLeftActorRef)
       val childRight = Child(centroidRight, childRightActorRef)
       
-      Some(Children(left = childLeft, right = childRight))
+      val distanceToBoundary = metric.easyDistanceToBoundary(centroidLeft, centroidRight)
+      
+      Some(NodeSettings(Children(left = childLeft, right = childRight), distanceToBoundary))
     }
     else None
     
     
-  val isLeaf = !children.isDefined
+  val isLeaf = !nodeSettings.isDefined
   
   if (isLeaf) {
     signalTreeInitialised()
@@ -72,16 +76,27 @@ class NeighborhoodTreeActor(
   def receive: Receive = receiveCommon
   
   def receiveCommon: Receive = {
-    case request @ GetNeighborsRequest(coordinates, k, timeout) => {
-      children match {
-        case Some(Children(Child(centroidLeft, treeLeft), Child(centroidRight, treeRight))) => {
-          val closerToLeft = distance(centroidLeft, coordinates) < distance(centroidRight, coordinates)
+    case request: NeighborsSearchTreeRequest => {
+      nodeSettings match {
+        case Some(NodeSettings(
+            Children(
+                Child(centroidLeft, treeLeft), 
+                Child(centroidRight, treeRight)),
+                easyDistanceToBoundary)) => {
+          val closerToLeft = 
+            metric.easyDistance(centroidLeft, request.coordinates) < metric.easyDistance(centroidRight, request.coordinates)
           val selectedSubTree = if (closerToLeft) treeLeft else treeRight
+          val otherSubTree = if (closerToLeft) treeRight else treeLeft
+          val easyDistToBound = easyDistanceToBoundary(request.coordinates)
+          if (easyDistToBound < metric.realDistanceToEasyDistance(request.distanceThreshold)) {
+            sender ! EnqueueCandidate(CandidateSubTree(otherSubTree, easyDistToBound))
+          }
           selectedSubTree.forward(request)
         }
         case None => {
-          val neighbors = points.sortBy(p => distance(coordinates, p.coordinates)).take(k)
-          sender ! GetNeighborsResponse(neighbors)
+          val nearestNeighborsContainer = 
+            NearestNeighborsContainer.apply(points, request.k, p => metric.easyDistance(p.coordinates, request.coordinates))
+          sender ! NeighborsSearchLeafResponse(nearestNeighborsContainer)
         }
       }
     }

@@ -11,7 +11,7 @@ object JsonSupport {
   import com.codiply.barrio.neighbors.TreeStats
 
   final case class NeighborJson(id: String, coordinates: List[Double])
-  final case class NeighborsRequestJson(k: Int, coordinates: List[Double])
+  final case class NeighborsRequestJson(k: Int, coordinates: List[Double], distanceThreshold: Double)
   final case class NeighborsResponseJson(neighbors: List[NeighborJson])
 
   object Mapping {
@@ -69,7 +69,7 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   import JsonSupport._
   
   implicit val neighborFormat = jsonFormat2(NeighborJson)
-  implicit val neighborsRequestFormat = jsonFormat2(NeighborsRequestJson)
+  implicit val neighborsRequestFormat = jsonFormat3(NeighborsRequestJson)
   implicit val neighborsResponseFormat = jsonFormat1(NeighborsResponseJson)
   implicit val memoryStatsFormat = jsonFormat4(MemoryStatsJson)
   implicit val treeStatsFormat = jsonFormat8(TreeStatsJson)  

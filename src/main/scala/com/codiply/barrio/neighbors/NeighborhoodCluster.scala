@@ -14,7 +14,7 @@ import Point._
 class NeighborhoodCluster (
     actorSystem: ActorSystem,
     pointsLoader: () => Iterable[Point],
-    distance: DistanceMetric) extends NeighborProvider {
+    metric: DistanceMetric) extends NeighborProvider {
   import ActorProtocol._
   import forests.NeighborhoodForestActor
   
@@ -23,7 +23,7 @@ class NeighborhoodCluster (
   import actorSystem.dispatcher
       
   // TODO: Take the number of trees from configuration
-  val nodeActor = actorSystem.actorOf(NeighborhoodForestActor.props(points, distance, 3), "neighborhood-node")
+  val nodeActor = actorSystem.actorOf(NeighborhoodForestActor.props(points, metric, 3), "neighborhood-node")
   
   val nodeActorRouter = actorSystem.actorOf(
       ClusterRouterGroup(
@@ -35,13 +35,13 @@ class NeighborhoodCluster (
               useRole = None)).props(), name = "neighborhood-node-router")
   
   val receptionistActor = actorSystem.actorOf(
-      NeighborhoodReceptionistActor.props(nodeActorRouter, distance), "receptionist") 
+      NeighborhoodReceptionistActor.props(nodeActorRouter, metric), "receptionist") 
       
-  def getNeighbors(coordinates: List[Double], k: Int): Future[List[Point]] = {
+  def getNeighbors(coordinates: List[Double], k: Int, distanceThreshold: Double): Future[List[Point]] = {
     val timeout: FiniteDuration = 5 seconds
     implicit val askTimeout = Timeout(2 * timeout)
     
-    (receptionistActor ? GetNeighborsRequest(coordinates, k , timeout)).mapTo[GetNeighborsResponse].map(_.neighbors)
+    (receptionistActor ? GetNeighborsRequest(coordinates, k , distanceThreshold, timeout)).mapTo[GetNeighborsResponse].map(_.neighbors)
   }
   
   def getStats(): Future[ClusterStats] = {
