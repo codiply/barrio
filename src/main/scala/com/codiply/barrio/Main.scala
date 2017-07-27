@@ -20,9 +20,9 @@ object Main extends App {
   
   val pointsLoader = () => PointLoader.fromFile(config.file)
   
-  val distance = DistanceMetric.euclidean
+  val metricSpace = DistanceMetric.euclidean
   
-  val neighborhood = new NeighborhoodCluster(actorSystem, pointsLoader, distance)
+  val neighborhood = new NeighborhoodCluster(actorSystem, pointsLoader, metricSpace)
   
   val webServer = new WebServer(neighborhood)
   // TODO: get the port from the environment

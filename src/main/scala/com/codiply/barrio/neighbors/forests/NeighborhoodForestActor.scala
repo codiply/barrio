@@ -26,7 +26,7 @@ object NeighborhoodForestActor {
 
 class NeighborhoodForestActor(
     points: List[Point],
-    distance: DistanceMetric,
+    metric: DistanceMetric,
     nTrees: Int) extends Actor with ActorLogging {
   import ActorProtocol._
   import com.codiply.barrio.neighbors.MemoryStats
@@ -42,7 +42,7 @@ class NeighborhoodForestActor(
  
   val trees = (1 to nTrees).map(i => {
     val name = "tree-" + i
-    context.actorOf(NeighborhoodTreeActor.props(name, points, distance, 0, statsActor), name)
+    context.actorOf(NeighborhoodTreeActor.props(name, points, metric, 0, statsActor), name)
   }).toList
   
   var initialisedTreesCount = 0
@@ -55,10 +55,10 @@ class NeighborhoodForestActor(
         initialisedTrees = sender +: initialisedTrees
       }
     }
-    case request @ GetNeighborsRequest(coordinates, k, timeout) => {
+    case request @ GetNeighborsRequest(coordinates, k, distanceThreshold, timeout) => {
       val originalSender = sender
       val searchActor = context.actorOf(NeighborhoodForestSearchActor.props(
-          originalSender, initialisedTrees, coordinates, k, timeout))
+          originalSender, initialisedTrees, coordinates, k, metric.realDistanceToEasyDistance(distanceThreshold), timeout))
     }
     case GetNodeStatsRequest(timeout) => {
       val runtime = Runtime.getRuntime

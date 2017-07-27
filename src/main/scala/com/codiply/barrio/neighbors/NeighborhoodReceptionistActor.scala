@@ -13,13 +13,13 @@ import akka.actor.Props
 import Point._
 
 object NeighborhoodReceptionistActor {
-  def props(nodeActorRouter: ActorRef, distance: DistanceMetric) = 
-    Props(new NeighborhoodReceptionistActor(nodeActorRouter, distance))
+  def props(nodeActorRouter: ActorRef, metric: DistanceMetric) = 
+    Props(new NeighborhoodReceptionistActor(nodeActorRouter, metric))
 }
 
 class NeighborhoodReceptionistActor(
     nodeActorRouter: ActorRef,
-    distance: DistanceMetric) extends Actor with ActorLogging {
+    metric: DistanceMetric) extends Actor with ActorLogging {
   import ActorProtocol._
   
   val cluster = Cluster(context.system)
@@ -36,16 +36,16 @@ class NeighborhoodReceptionistActor(
   val receive: Receive = receiveRequests orElse receiveClusterEvents
   
   def receiveRequests: Receive = {
-    case request @ GetNeighborsRequest(coordinates, k, aggregatorTimeout) => {
+    case request @ GetNeighborsRequest(coordinates, k, distanceThreshold, aggregatorTimeout) => {
       val originalSender = sender
       val aggregator = context.actorOf(NeighborAggregatorActor.props(
-          coordinates, k, distance, originalSender, nodeCount, aggregatorTimeout))
+          coordinates, k, metric, originalSender, nodeCount, 2 * aggregatorTimeout))
       nodeActorRouter.tell(request, aggregator) 
     }
     case request @ GetClusterStatsRequest(aggregatorTimeout) => {
       val originalSender = sender
       val aggregator = context.actorOf(NodeStatsAggregatorActor.props(
-          originalSender, nodeCount, aggregatorTimeout))
+          originalSender, nodeCount, 2 * aggregatorTimeout))
       nodeActorRouter.tell(GetNodeStatsRequest(aggregatorTimeout), aggregator)
     }
   } 
