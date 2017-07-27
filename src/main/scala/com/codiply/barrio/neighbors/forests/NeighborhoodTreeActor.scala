@@ -28,6 +28,7 @@ class NeighborhoodTreeActor(
     thisRootDepth: Int,
     statsActor: ActorRef) extends Actor with ActorLogging {
   import ActorProtocol._
+  import NeighborhoodForestSearchActorProtocol._
   import NeighborhoodTreeActor._
 
   case class Child(centroid: Coordinates, actorRef: ActorRef)
@@ -72,16 +73,17 @@ class NeighborhoodTreeActor(
   def receive: Receive = receiveCommon
   
   def receiveCommon: Receive = {
-    case request @ GetNeighborsRequest(coordinates, k, timeout) => {
+    case request: NeighborsSearchTreeRequest => {
       children match {
         case Some(Children(Child(centroidLeft, treeLeft), Child(centroidRight, treeRight))) => {
-          val closerToLeft = distance(centroidLeft, coordinates) < distance(centroidRight, coordinates)
+          val closerToLeft = distance(centroidLeft, request.coordinates) < distance(centroidRight, request.coordinates)
           val selectedSubTree = if (closerToLeft) treeLeft else treeRight
           selectedSubTree.forward(request)
         }
         case None => {
-          val neighbors = points.sortBy(p => distance(coordinates, p.coordinates)).take(k)
-          sender ! GetNeighborsResponse(neighbors)
+          val nearestNeighborsContainer = 
+            NearestNeighborsContainer.apply(points, request.k, p => distance(p.coordinates, request.coordinates))
+          sender ! NeighborsSearchLeafResponse(nearestNeighborsContainer)
         }
       }
     }

@@ -39,7 +39,7 @@ class NeighborhoodForestActor(
   import context.dispatcher
   
   val statsActor = context.actorOf(NeihborhoodForestStatsActor.props(), "stats-actor")
-  
+ 
   val trees = (1 to nTrees).map(i => {
     val name = "tree-" + i
     context.actorOf(NeighborhoodTreeActor.props(name, points, distance, 0, statsActor), name)
@@ -57,9 +57,8 @@ class NeighborhoodForestActor(
     }
     case request @ GetNeighborsRequest(coordinates, k, timeout) => {
       val originalSender = sender
-      val aggregator = context.actorOf(NeighborAggregatorActor.props(
-          coordinates, k, distance, originalSender, initialisedTreesCount, timeout))
-      initialisedTrees.foreach(_.tell(request, aggregator))
+      val searchActor = context.actorOf(NeighborhoodForestSearchActor.props(
+          originalSender, initialisedTrees, coordinates, k, timeout))
     }
     case GetNodeStatsRequest(timeout) => {
       val runtime = Runtime.getRuntime
