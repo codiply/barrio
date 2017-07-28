@@ -5,19 +5,19 @@ final case class MemoryStats(
   totalMemoryMB: Double,
   maxMemoryMB: Double,
   usedMemoryMB: Double)
-    
+
 final case class TreeStats(
-  leafs: Int, 
+  leafs: Int,
   points: Int,
   minLeafPoints: Int,
   meanLeafPoints: Double,
   maxLeafPoints: Int,
-  minDepth: Int, 
+  minDepth: Int,
   meanDepth: Double,
-  maxDepth: Int)    
+  maxDepth: Int)
 
 final case class NodeStats(
   memory: MemoryStats,
   trees: Map[String, TreeStats])
-    
+
 final case class ClusterStats(nodes: List[NodeStats])

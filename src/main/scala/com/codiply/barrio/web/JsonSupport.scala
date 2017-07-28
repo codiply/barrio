@@ -3,7 +3,7 @@ package com.codiply.barrio.web
 import akka.http.scaladsl.server.Directives
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import spray.json._
-  
+
 object JsonSupport {
   import com.codiply.barrio.neighbors.ClusterStats
   import com.codiply.barrio.neighbors.MemoryStats
@@ -15,14 +15,14 @@ object JsonSupport {
   final case class NeighborsResponseJson(neighbors: List[NeighborJson])
 
   object Mapping {
-    def mapMemoryStats(stats: MemoryStats): MemoryStatsJson = 
+    def mapMemoryStats(stats: MemoryStats): MemoryStatsJson =
       MemoryStatsJson(
         freeMemoryMB = stats.freeMemoryMB,
         totalMemoryMB = stats.totalMemoryMB,
         maxMemoryMB = stats.maxMemoryMB,
         usedMemoryMB = stats.usedMemoryMB)
-    
-    def mapTreeStats(stats: TreeStats): TreeStatsJson = 
+
+    def mapTreeStats(stats: TreeStats): TreeStatsJson =
       TreeStatsJson(
         leafs = stats.leafs,
         points = stats.points,
@@ -32,47 +32,47 @@ object JsonSupport {
         minDepth = stats.minDepth,
         meanDepth = stats.meanDepth,
         maxDepth = stats.maxDepth)
-        
-    def mapNodeStats(stats: NodeStats): NodeStatsJson = 
+
+    def mapNodeStats(stats: NodeStats): NodeStatsJson =
       NodeStatsJson(
         memory = mapMemoryStats(stats.memory),
         trees = stats.trees.mapValues(mapTreeStats))
-        
-    def mapClusterStats(stats: ClusterStats): ClusterStatsJson = 
+
+    def mapClusterStats(stats: ClusterStats): ClusterStatsJson =
       ClusterStatsJson(nodes = stats.nodes.map(mapNodeStats))
   }
-  
+
   final case class MemoryStatsJson(
     freeMemoryMB: Double,
     totalMemoryMB: Double,
     maxMemoryMB: Double,
     usedMemoryMB: Double)
-    
+
   final case class TreeStatsJson(
-    leafs: Int, 
-    points: Int, 
+    leafs: Int,
+    points: Int,
     minLeafPoints: Int,
     meanLeafPoints: Double,
     maxLeafPoints: Int,
-    minDepth: Int, 
+    minDepth: Int,
     meanDepth: Double,
-    maxDepth: Int)    
-    
+    maxDepth: Int)
+
   final case class NodeStatsJson(
     memory: MemoryStatsJson,
     trees: Map[String, TreeStatsJson])
-    
+
   final case class ClusterStatsJson(nodes: List[NodeStatsJson])
 }
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   import JsonSupport._
-  
+
   implicit val neighborFormat = jsonFormat2(NeighborJson)
   implicit val neighborsRequestFormat = jsonFormat3(NeighborsRequestJson)
   implicit val neighborsResponseFormat = jsonFormat1(NeighborsResponseJson)
   implicit val memoryStatsFormat = jsonFormat4(MemoryStatsJson)
-  implicit val treeStatsFormat = jsonFormat8(TreeStatsJson)  
+  implicit val treeStatsFormat = jsonFormat8(TreeStatsJson)
   implicit val nodeStatsFormat = jsonFormat2(NodeStatsJson)
   implicit val clusterStatsFormat = jsonFormat1(ClusterStatsJson)
 }

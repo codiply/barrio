@@ -14,10 +14,10 @@ import com.codiply.barrio.neighbors.Point._
 object NeighborhoodTreeActor {
   def props(
       rootTreeName: String,
-      points: List[Point], 
+      points: List[Point],
       metric: DistanceMetric,
       thisRootDepth: Int,
-      statsActor: ActorRef) = 
+      statsActor: ActorRef): Props =
     Props(new NeighborhoodTreeActor(rootTreeName, points, metric, thisRootDepth, statsActor))
 }
 
@@ -34,56 +34,58 @@ class NeighborhoodTreeActor(
   case class Child(centroid: Coordinates, actorRef: ActorRef)
   case class Children(left: Child, right: Child)
   case class NodeSettings(children: Children, easyDistanceToBoundary: Coordinates => Double)
-  
+
   var initialisedChildrenCount = 0
-  
+
+  // TODO: make the threshold of 100 points configurable
+  val minPointsForSplit = 100
+
   val nodeSettings =
-    // TODO: make the threshold of 100 points configurable
-    if (points.take(101).length == 101) {
+    if (points.take(minPointsForSplit).length == minPointsForSplit) {
       val centroids = Random.shuffle(points).take(2).toArray
       val centroidLeft = centroids(0).coordinates
       val centroidRight = centroids(1).coordinates
-      
-      val belongsToLeft = (p: Point) => 
+
+      val belongsToLeft = (p: Point) =>
         metric.easyDistance(centroidLeft, p.coordinates) < metric.easyDistance(centroidRight, p.coordinates)
       val (pointsLeft, pointsRight) = points.partition(belongsToLeft)
-      
+
       def createChildActor(pts: List[Point]) =
         context.actorOf(props(rootTreeName, pts, metric, thisRootDepth + 1, statsActor))
-      
+
       val childLeftActorRef = createChildActor(pointsLeft)
       val childRightActorRef = createChildActor(pointsRight)
-      
+
       val childLeft = Child(centroidLeft, childLeftActorRef)
       val childRight = Child(centroidRight, childRightActorRef)
-      
+
       val distanceToBoundary = metric.easyDistanceToBoundary(centroidLeft, centroidRight)
-      
+
       Some(NodeSettings(Children(left = childLeft, right = childRight), distanceToBoundary))
+    } else {
+      None
     }
-    else None
-    
-    
+
   val isLeaf = !nodeSettings.isDefined
-  
+
   if (isLeaf) {
     signalTreeInitialised()
     sendStats()
   } else {
     context.become(receive orElse receiveNode)
   }
-  
+
   def receive: Receive = receiveCommon
-  
+
   def receiveCommon: Receive = {
     case request: NeighborsSearchTreeRequest => {
       nodeSettings match {
         case Some(NodeSettings(
             Children(
-                Child(centroidLeft, treeLeft), 
+                Child(centroidLeft, treeLeft),
                 Child(centroidRight, treeRight)),
                 easyDistanceToBoundary)) => {
-          val closerToLeft = 
+          val closerToLeft =
             metric.easyDistance(centroidLeft, request.coordinates) < metric.easyDistance(centroidRight, request.coordinates)
           val selectedSubTree = if (closerToLeft) treeLeft else treeRight
           val otherSubTree = if (closerToLeft) treeRight else treeLeft
@@ -94,29 +96,29 @@ class NeighborhoodTreeActor(
           selectedSubTree.forward(request)
         }
         case None => {
-          val nearestNeighborsContainer = 
+          val nearestNeighborsContainer =
             NearestNeighborsContainer.apply(points, request.k, p => metric.easyDistance(p.coordinates, request.coordinates))
           sender ! NeighborsSearchLeafResponse(nearestNeighborsContainer)
         }
       }
     }
   }
-  
+
   def receiveNode: Receive = {
     case TreeInitialised => {
       initialisedChildrenCount += 1
       if (initialisedChildrenCount == 2) signalTreeInitialised()
     }
   }
-  
-  def signalTreeInitialised() = {
+
+  private def signalTreeInitialised() = {
     context.parent ! TreeInitialised
   }
-  
-  def sendStats() = {
+
+  private def sendStats() = {
     statsActor ! NeighborhoodTreeLeafStats(
-        treeName = rootTreeName, 
-        depth = thisRootDepth, 
+        treeName = rootTreeName,
+        depth = thisRootDepth,
         pointCount = points.length)
   }
 }
