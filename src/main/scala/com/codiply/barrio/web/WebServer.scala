@@ -23,7 +23,7 @@ class WebServer(neighborhood: NeighborProvider) extends HttpApp with JsonSupport
           complete(HttpEntity(ContentTypes.`application/json`, response.toString))
         }
       }
-    } ~ 
+    } ~
     path("neighbors") {
       post {
         decodeRequest {
@@ -32,7 +32,7 @@ class WebServer(neighborhood: NeighborProvider) extends HttpApp with JsonSupport
               val response = NeighborsResponseJson(neighbors.map(p => NeighborJson(p.id, p.coordinates))).toJson
               complete(HttpEntity(ContentTypes.`application/json`, response.toString))
             }
-          }        
+          }
         }
       }
     }

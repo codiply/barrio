@@ -13,18 +13,18 @@ object NearestNeighborsContainer {
     val distanceUpperBound = getDistanceUpperBound(orderedDistinctNeighbors, kDesired)
     NearestNeighborsContainer(orderedDistinctNeighbors, kDesired, distanceUpperBound)
   }
-  
-  def empty(kDesired: Int) = NearestNeighborsContainer(
+
+  def empty(kDesired: Int): NearestNeighborsContainer = NearestNeighborsContainer(
       orderedDistinctNeighbors = Vector.empty,
       kDesired = kDesired,
       distanceUpperBound = None)
-      
+
   def mergeOrderedDistinctNeighbors(
-      neighbors1: Vector[NearestNeighbor], 
+      neighbors1: Vector[NearestNeighbor],
       neighbors2: Vector[NearestNeighbor],
       kDesired: Int): Vector[NearestNeighbor] = {
     @tailrec def loop(
-        neighbors1: Vector[NearestNeighbor], 
+        neighbors1: Vector[NearestNeighbor],
         neighbors2: Vector[NearestNeighbor],
         newNeighborsReversed: List[NearestNeighbor],
         kRemaining: Int): Vector[NearestNeighbor] = {
@@ -32,14 +32,16 @@ object NearestNeighborsContainer {
         newNeighborsReversed.reverse.toVector
       } else {
         (neighbors1, neighbors2) match {
-          case (n1 +: ns1, n2 +: ns2) => 
-            if (n1.point.id == n2.point.id)
+          case (n1 +: ns1, n2 +: ns2) =>
+            if (n1.point.id == n2.point.id) {
               loop(ns1, ns2, n1 +: newNeighborsReversed, kRemaining - 1)
+            }
             else {
-              if (n1.distance < n2.distance)
+              if (n1.distance < n2.distance) {
                 loop(ns1, neighbors2, n1 +: newNeighborsReversed, kRemaining - 1)
-              else
+              } else {
                 loop(neighbors1, ns2, n2 +: newNeighborsReversed, kRemaining - 1)
+              }
             }
           case (n1 +: ns1, _) => loop(ns1, neighbors2, n1 +: newNeighborsReversed, kRemaining - 1)
           case (_, n2 +: ns2) => loop(neighbors1, ns2, n2 +: newNeighborsReversed, kRemaining - 1)
@@ -47,16 +49,17 @@ object NearestNeighborsContainer {
         }
       }
     }
-    
+
     loop(neighbors1, neighbors2, Nil, kDesired)
   }
-  
+
   def getDistanceUpperBound(
       orderedDistinctNeighbors: Vector[NearestNeighbor], kDesired: Int): Option[Double] = {
-    if (orderedDistinctNeighbors.length > 0 && orderedDistinctNeighbors.length == kDesired)
+    if (orderedDistinctNeighbors.length > 0 && orderedDistinctNeighbors.length == kDesired) {
       Some(orderedDistinctNeighbors.last.distance)
-    else
+    } else {
       None
+    }
   }
 }
 
@@ -65,7 +68,7 @@ final case class NearestNeighborsContainer(
     kDesired: Int,
     distanceUpperBound: Option[Double]) {
   import NearestNeighborsContainer._
-  
+
   def merge(that: NearestNeighborsContainer): NearestNeighborsContainer = {
     val newOrderedDistinctNeighbors = mergeOrderedDistinctNeighbors(
         orderedDistinctNeighbors, that.orderedDistinctNeighbors, kDesired)

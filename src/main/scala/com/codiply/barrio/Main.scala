@@ -12,19 +12,20 @@ import web.WebServer
 
 object Main extends App {
   import neighbors.Point.DistanceMetric
-  
+
   val config: ArgsConfig = ArgsParser.parse(args)
-  
+
   // TODO: get it from the environment variable
   val actorSystem = ActorSystem("barrio")
-  
+
   val pointsLoader = () => PointLoader.fromFile(config.file)
-  
+
   val metricSpace = DistanceMetric.euclidean
-  
+
   val neighborhood = new NeighborhoodCluster(actorSystem, pointsLoader, metricSpace)
-  
+
   val webServer = new WebServer(neighborhood)
   // TODO: get the port from the environment
-  webServer.startServer("0.0.0.0", 18001, ServerSettings(ConfigFactory.load), Some(actorSystem))
+  val webServerPort = 18001
+  webServer.startServer("0.0.0.0", webServerPort, ServerSettings(ConfigFactory.load), Some(actorSystem))
 }

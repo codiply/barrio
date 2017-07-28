@@ -7,13 +7,13 @@ object Point {
   type Coordinates = List[Double]
   type CoordinatesDistance = (Coordinates, Coordinates) => Double
   type DistanceToBoundary = (Coordinates, Coordinates) => Coordinates => Double
-  
+
   case class DistanceMetric(
-      easyDistance: CoordinatesDistance, 
+      easyDistance: CoordinatesDistance,
       easyDistanceToBoundary: DistanceToBoundary,
       easyDistanceToRealDistance: Double => Double,
       realDistanceToEasyDistance: Double => Double)
-  
+
   object DistanceMetric {
     val euclidean = DistanceMetric(
       easyDistance = (coordinates1: Coordinates, coordinates2: Coordinates) =>

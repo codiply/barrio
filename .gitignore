@@ -7,6 +7,7 @@ target/
 .classpath
 .project
 .idea/
+.scalastyle
 
 .pydevproject
 

@@ -21,18 +21,18 @@ class AggregatorActor[TAggregate, TResponseIn:  ClassTag, TResponseOut](
     timeout: FiniteDuration) extends Actor {
   import AggregatorActorProtocol._
   import context.dispatcher
-  
+
   var currentAggregateValue: TAggregate = initialAggregateValue
   var outstandingIncomingResponses = expectedNumberOfResponses
-  
+
   var timeoutCancellable: Option[Cancellable] = None
- 
+
   if (expectedNumberOfResponses <= 0) {
     sendAggregate()
   } else {
     timeoutCancellable = Some(context.system.scheduler.scheduleOnce(timeout, self, DoSendAggregate))
   }
-  
+
   def receive: Receive = {
     case incomingResponse: TResponseIn =>
       currentAggregateValue = folder(currentAggregateValue, incomingResponse)
@@ -43,8 +43,8 @@ class AggregatorActor[TAggregate, TResponseIn:  ClassTag, TResponseOut](
       }
     case DoSendAggregate => sendAggregate()
   }
-  
-  def sendAggregate() = {
+
+  private def sendAggregate() = {
     val response = mapper(currentAggregateValue)
     responseRecipient ! response
     context.stop(self)

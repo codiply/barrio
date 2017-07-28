@@ -20,7 +20,7 @@ object NeighborhoodForestActor {
   def props(
     points: List[Point],
     distance: DistanceMetric,
-    nTrees: Int) = 
+    nTrees: Int): Props =
       Props(new NeighborhoodForestActor(points, distance, nTrees))
 }
 
@@ -32,22 +32,22 @@ class NeighborhoodForestActor(
   import com.codiply.barrio.neighbors.MemoryStats
   import com.codiply.barrio.neighbors.TreeStats
   import com.codiply.barrio.neighbors.NodeStats
-  
-  val timeout: FiniteDuration = 5 seconds
+
+  val timeout: FiniteDuration = 5.seconds
   implicit val askTimeout = Timeout(2 * timeout)
-  
+
   import context.dispatcher
-  
+
   val statsActor = context.actorOf(NeihborhoodForestStatsActor.props(), "stats-actor")
- 
+
   val trees = (1 to nTrees).map(i => {
     val name = "tree-" + i
     context.actorOf(NeighborhoodTreeActor.props(name, points, metric, 0, statsActor), name)
   }).toList
-  
+
   var initialisedTreesCount = 0
   var initialisedTrees: List[ActorRef] = Nil
-    
+
   def receive: Receive = {
     case TreeInitialised => {
       if (trees.contains(sender)) {
@@ -67,17 +67,17 @@ class NeighborhoodForestActor(
       val freeMemoryMB = runtime.freeMemory.toDouble / mb;
       val totalMemoryMB = runtime.totalMemory.toDouble / mb;
       val maxMemoryMB = runtime.maxMemory.toDouble /mb;
-      
+
       val treeStatsResponse = (statsActor ? GetNeighborhoodTreeStatsRequest).mapTo[GetNeighborhoodTreeStatsResponse]
-      
+
       val originalSender = sender
-      
+
       treeStatsResponse.map{ _.treeStats } onSuccess { case treeStats: Map[String, TreeStats] =>
         originalSender ! GetNodeStatsResponse(NodeStats(
             memory = MemoryStats(
-                freeMemoryMB = freeMemoryMB, 
+                freeMemoryMB = freeMemoryMB,
                 totalMemoryMB = totalMemoryMB,
-                 maxMemoryMB = maxMemoryMB, 
+                 maxMemoryMB = maxMemoryMB,
               usedMemoryMB = totalMemoryMB - freeMemoryMB),
             trees = treeStats
         ))

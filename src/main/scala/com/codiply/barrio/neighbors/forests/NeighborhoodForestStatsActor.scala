@@ -5,19 +5,19 @@ import akka.actor.Props
 import com.codiply.barrio.neighbors.TreeStats
 
 object NeihborhoodForestStatsActor {
-  def props() = Props(new NeighborhoodForestStatsActor()) 
+  def props(): Props = Props(new NeighborhoodForestStatsActor())
 }
 
 class NeighborhoodForestStatsActor extends Actor {
   import ActorProtocol._
-  
+
   var treeStats = Map[String, TreeStats]()
-  
+
   val initialStats = TreeStats(
-      leafs = 0, points = 0, 
-      minLeafPoints = Int.MaxValue, meanLeafPoints = 0.0, maxLeafPoints = 0, 
+      leafs = 0, points = 0,
+      minLeafPoints = Int.MaxValue, meanLeafPoints = 0.0, maxLeafPoints = 0,
       minDepth = Int.MaxValue, meanDepth = 0.0, maxDepth = 0)
-  
+
   def receive: Receive = {
     case leafStats: NeighborhoodTreeLeafStats =>
       val previousStats = treeStats.getOrElse(leafStats.treeName, initialStats)
