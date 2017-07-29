@@ -9,12 +9,16 @@ import akka.cluster.routing.ClusterRouterGroupSettings
 import akka.pattern.ask
 import akka.routing.BroadcastGroup
 import akka.util.Timeout
-import Point._
+
+import com.codiply.barrio.geometry.EasyDistance
+import com.codiply.barrio.geometry.Metric
+import com.codiply.barrio.geometry.Point
+import com.codiply.barrio.geometry.RealDistance
 
 class NeighborhoodCluster (
     actorSystem: ActorSystem,
     pointsLoader: () => Iterable[Point],
-    metric: DistanceMetric) extends NeighborProvider {
+    metric: Metric) extends NeighborProvider {
   import ActorProtocol._
   import forests.NeighborhoodForestActor
 
@@ -37,11 +41,16 @@ class NeighborhoodCluster (
   val receptionistActor = actorSystem.actorOf(
       NeighborhoodReceptionistActor.props(nodeActorRouter, metric), "receptionist")
 
-  def getNeighbors(coordinates: List[Double], k: Int, distanceThreshold: Double): Future[List[Point]] = {
+  def getNeighbors(coordinates: List[Double], k: Int, distanceThreshold: RealDistance): Future[List[Point]] = {
     val timeout: FiniteDuration = 5.seconds
     implicit val askTimeout = Timeout(2 * timeout)
 
-    (receptionistActor ? GetNeighborsRequest(coordinates, k , distanceThreshold, timeout)).mapTo[GetNeighborsResponse].map(_.neighbors)
+    metric.toEasyDistance(distanceThreshold) match {
+      case Some(easyDistanceThreshold) =>
+        (receptionistActor ? GetNeighborsRequest(
+            coordinates, k , easyDistanceThreshold, timeout)).mapTo[GetNeighborsResponse].map(_.neighbors)
+      case None => Future(List[Point]())
+    }
   }
 
   def getStats(): Future[ClusterStats] = {

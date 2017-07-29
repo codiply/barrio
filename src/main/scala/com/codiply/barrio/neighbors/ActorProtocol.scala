@@ -1,11 +1,13 @@
 package com.codiply.barrio.neighbors
 
 import scala.concurrent.duration.FiniteDuration
-import Point._
+
+import com.codiply.barrio.geometry.EasyDistance
+import com.codiply.barrio.geometry.Point
 
 object ActorProtocol {
   final case class GetNeighborsRequest(
-      coordinates: List[Double], k: Int, distanceThreshold: Double, timeout: FiniteDuration)
+      coordinates: List[Double], k: Int, distanceThreshold: EasyDistance, timeout: FiniteDuration)
   final case class GetNeighborsResponse(neighbors: List[Point])
   final case class GetClusterStatsRequest(timeout: FiniteDuration)
   final case class GetNodeStatsRequest(timeout: FiniteDuration)

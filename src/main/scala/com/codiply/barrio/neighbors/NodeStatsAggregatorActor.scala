@@ -4,9 +4,10 @@ import scala.concurrent.duration._
 
 import akka.actor.ActorRef
 import akka.actor.Props
-import com.codiply.barrio.generics.AggregatorActor
-import ActorProtocol._
-import Point._
+import com.codiply.barrio.generic.AggregatorActor
+
+import com.codiply.barrio.geometry.Point
+import com.codiply.barrio.neighbors.ActorProtocol._
 
 object NodeStatsAggregatorActor {
   def props(

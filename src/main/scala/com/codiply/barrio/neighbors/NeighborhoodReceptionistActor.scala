@@ -10,16 +10,18 @@ import akka.actor.Address
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent._
 import akka.actor.Props
-import Point._
+
+import com.codiply.barrio.geometry.Metric
+import com.codiply.barrio.geometry.Point
 
 object NeighborhoodReceptionistActor {
-  def props(nodeActorRouter: ActorRef, metric: DistanceMetric): Props =
+  def props(nodeActorRouter: ActorRef, metric: Metric): Props =
     Props(new NeighborhoodReceptionistActor(nodeActorRouter, metric))
 }
 
 class NeighborhoodReceptionistActor(
     nodeActorRouter: ActorRef,
-    metric: DistanceMetric) extends Actor with ActorLogging {
+    metric: Metric) extends Actor with ActorLogging {
   import ActorProtocol._
 
   val cluster = Cluster(context.system)

@@ -1,15 +1,17 @@
-package com.codiply.barrio.neighbors.forests
+package com.codiply.barrio.neighbors
 
 import scala.annotation.tailrec
-import com.codiply.barrio.neighbors.Point
 
-final case class NearestNeighbor(point: Point, distance: Double)
+import com.codiply.barrio.geometry.EasyDistance
+import com.codiply.barrio.geometry.Point
+
+final case class NearestNeighbor(point: Point, distance: EasyDistance)
 
 object NearestNeighborsContainer {
-  def apply(points: List[Point], kDesired: Int, distanceFunc: Point => Double): NearestNeighborsContainer = {
+  def apply(points: List[Point], kDesired: Int, distanceFunc: Point => EasyDistance): NearestNeighborsContainer = {
     val distinctPoints = points.groupBy(_.id).map(_._2.head)
     val orderedDistinctNeighbors = distinctPoints.map { p =>
-      NearestNeighbor(p, distanceFunc(p)) }.toVector.sortBy(_.distance).take(kDesired)
+      NearestNeighbor(p, distanceFunc(p)) }.toVector.sortBy(_.distance.value).take(kDesired)
     val distanceUpperBound = getDistanceUpperBound(orderedDistinctNeighbors, kDesired)
     NearestNeighborsContainer(orderedDistinctNeighbors, kDesired, distanceUpperBound)
   }
@@ -37,7 +39,7 @@ object NearestNeighborsContainer {
               loop(ns1, ns2, n1 +: newNeighborsReversed, kRemaining - 1)
             }
             else {
-              if (n1.distance < n2.distance) {
+              if (n1.distance.lessThan(n2.distance)) {
                 loop(ns1, neighbors2, n1 +: newNeighborsReversed, kRemaining - 1)
               } else {
                 loop(neighbors1, ns2, n2 +: newNeighborsReversed, kRemaining - 1)
@@ -54,7 +56,7 @@ object NearestNeighborsContainer {
   }
 
   def getDistanceUpperBound(
-      orderedDistinctNeighbors: Vector[NearestNeighbor], kDesired: Int): Option[Double] = {
+      orderedDistinctNeighbors: Vector[NearestNeighbor], kDesired: Int): Option[EasyDistance] = {
     if (orderedDistinctNeighbors.length > 0 && orderedDistinctNeighbors.length == kDesired) {
       Some(orderedDistinctNeighbors.last.distance)
     } else {
@@ -66,7 +68,7 @@ object NearestNeighborsContainer {
 final case class NearestNeighborsContainer(
     orderedDistinctNeighbors: Vector[NearestNeighbor],
     kDesired: Int,
-    distanceUpperBound: Option[Double]) {
+    distanceUpperBound: Option[EasyDistance]) {
   import NearestNeighborsContainer._
 
   def merge(that: NearestNeighborsContainer): NearestNeighborsContainer = {
