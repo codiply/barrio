@@ -13,6 +13,14 @@ Distributed approximate nearest neighbor search in Scala/Akka
 - Install [Docker Compose](https://docs.docker.com/compose/install/)
 - Your favourite IDE for Scala
 
+### Generate test data
+
+Run from the root folder
+
+    python .\scripts\create-test-data-grid.py
+
+This will create 4 input files in `\data\grid\` folder.
+
 ### Run single node
 
 Run
