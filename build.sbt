@@ -10,6 +10,8 @@ libraryDependencies ++= {
   
   Seq(
     "com.github.scopt" %% "scopt" % "3.6.0",
+    "org.scalactic" %% "scalactic" % "3.0.1",
+    "org.scalatest" %% "scalatest" % "3.0.1" % "test",
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
     "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
@@ -19,3 +21,5 @@ libraryDependencies ++= {
 
 assemblyOutputPath in assembly := file("target/barrio/barrio.jar")
 mainClass in assembly := Some("com.codiply.barrio.Main")
+
+addCommandAlias("ss", ";scalastyle;test:scalastyle")
