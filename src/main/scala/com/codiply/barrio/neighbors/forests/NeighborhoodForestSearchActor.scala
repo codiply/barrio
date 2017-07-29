@@ -7,7 +7,10 @@ import akka.actor.ActorLogging
 import akka.actor.ActorRef
 import akka.actor.Actor.Receive
 import akka.actor.Props
-import com.codiply.barrio.neighbors.Point
+
+import com.codiply.barrio.geometry.EasyDistance
+import com.codiply.barrio.geometry.Point
+import com.codiply.barrio.neighbors.NearestNeighborsContainer
 
 object NeighborhoodForestSearchActor {
   def props(
@@ -15,16 +18,16 @@ object NeighborhoodForestSearchActor {
       treesToSearch: List[ActorRef],
       coordinates: List[Double],
       k: Int,
-      distanceThreshold: Double,
+      distanceThreshold: EasyDistance,
       timeout: FiniteDuration): Props = Props(new NeighborhoodForestSearchActor(
           responseRecipient, treesToSearch, coordinates, k, distanceThreshold, timeout))
 }
 
 object NeighborhoodForestSearchActorProtocol {
   final object DoSendResponse
-  final case class NeighborsSearchTreeRequest(coordinates: List[Double], k: Int, distanceThreshold: Double)
+  final case class NeighborsSearchTreeRequest(coordinates: List[Double], k: Int, distanceThreshold: EasyDistance)
   final case class NeighborsSearchLeafResponse(container: NearestNeighborsContainer)
-  final case class CandidateSubTree(root: ActorRef, minEasyDistance: Double)
+  final case class CandidateSubTree(root: ActorRef, minDistance: EasyDistance)
   final case class EnqueueCandidate(candidate: CandidateSubTree)
 }
 
@@ -33,7 +36,7 @@ class NeighborhoodForestSearchActor(
       treesToSearch: List[ActorRef],
       coordinates: List[Double],
       k: Int,
-      easyDistanceThreshold: Double,
+      distanceThreshold: EasyDistance,
       timeout: FiniteDuration) extends Actor with ActorLogging {
   import context.dispatcher
   import com.codiply.barrio.neighbors.ActorProtocol._
@@ -42,8 +45,8 @@ class NeighborhoodForestSearchActor(
 
   val timeoutCancellable = context.system.scheduler.scheduleOnce(timeout, self, DoSendResponse)
 
-  val prioritisedSubTrees = PriorityQueue[CandidateSubTree]()(Ordering[Double].on[CandidateSubTree](-_.minEasyDistance))
-  treesToSearch.map { CandidateSubTree(_, 0.0) }.foreach { prioritisedSubTrees.enqueue(_) }
+  val prioritisedSubTrees = PriorityQueue[CandidateSubTree]()(Ordering[Double].on[CandidateSubTree](-_.minDistance.value))
+  treesToSearch.map { CandidateSubTree(_, EasyDistance(0.0)) }.foreach { prioritisedSubTrees.enqueue(_) }
 
   var nearestNeighborsContainer = NearestNeighborsContainer.empty(k)
 
@@ -64,7 +67,7 @@ class NeighborhoodForestSearchActor(
 
   private def pruneQueue() = {
     nearestNeighborsContainer.distanceUpperBound.foreach {
-      upperBound => prioritisedSubTrees.filter(tree => tree.minEasyDistance <= upperBound)
+      upperBound => prioritisedSubTrees.filter(tree => tree.minDistance.lessEqualThan(upperBound))
     }
   }
 
@@ -74,7 +77,7 @@ class NeighborhoodForestSearchActor(
     }
     else {
       val subTree = prioritisedSubTrees.dequeue()
-      subTree.root ! NeighborsSearchTreeRequest(coordinates, k, easyDistanceThreshold)
+      subTree.root ! NeighborsSearchTreeRequest(coordinates, k, distanceThreshold)
     }
   }
 

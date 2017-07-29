@@ -1,7 +1,8 @@
 package com.codiply.barrio.helpers
 
 import scala.io.Source
-import com.codiply.barrio.neighbors.Point
+
+import com.codiply.barrio.geometry.Point
 
 object PointLoader {
   def fromFile(fileName: String): Iterable[Point] = {

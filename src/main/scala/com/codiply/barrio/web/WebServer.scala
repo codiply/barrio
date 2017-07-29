@@ -3,11 +3,13 @@ package com.codiply.barrio.web
 import akka.http.scaladsl.model.{ ContentTypes, HttpEntity }
 import akka.http.scaladsl.server.HttpApp
 import akka.http.scaladsl.server.Route
+import spray.json._
+
+import com.codiply.barrio.geometry.RealDistance
 import com.codiply.barrio.neighbors.NeighborProvider
 import com.codiply.barrio.neighbors.ClusterStats
 import com.codiply.barrio.neighbors.NodeStats
-import JsonSupport._
-import spray.json._
+import com.codiply.barrio.web.JsonSupport._
 
 class WebServer(neighborhood: NeighborProvider) extends HttpApp with JsonSupport {
   override def routes: Route =
@@ -28,8 +30,9 @@ class WebServer(neighborhood: NeighborProvider) extends HttpApp with JsonSupport
       post {
         decodeRequest {
           entity(as[NeighborsRequestJson]) { request =>
-            onSuccess(neighborhood.getNeighbors(request.coordinates, request.k, request.distanceThreshold)) { neighbors =>
-              val response = NeighborsResponseJson(neighbors.map(p => NeighborJson(p.id, p.coordinates))).toJson
+            onSuccess(neighborhood.getNeighbors(
+                request.coordinates, request.k, RealDistance(request.distanceThreshold))) { neighbors =>
+              val response = NeighborsResponseJson(neighbors.map(p => NeighborJson(p.id, p.location))).toJson
               complete(HttpEntity(ContentTypes.`application/json`, response.toString))
             }
           }

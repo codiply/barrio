@@ -1,4 +1,4 @@
-package com.codiply.barrio.generics
+package com.codiply.barrio.generic
 
 import scala.concurrent.duration._
 import scala.reflect.ClassTag

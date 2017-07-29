@@ -9,24 +9,26 @@ import akka.actor.Actor.Receive
 import akka.actor.Props
 import akka.pattern.ask
 import akka.util.Timeout
+
 import com.codiply.barrio.neighbors.ActorProtocol._
+import com.codiply.barrio.geometry.Metric
+import com.codiply.barrio.geometry.Point
+import com.codiply.barrio.geometry.RealDistance
 import com.codiply.barrio.neighbors.NeighborAggregatorActor
-import com.codiply.barrio.neighbors.Point
-import com.codiply.barrio.neighbors.Point._
 import com.codiply.barrio.neighbors.NodeStats
 import com.codiply.barrio.neighbors.TreeStats
 
 object NeighborhoodForestActor {
   def props(
     points: List[Point],
-    distance: DistanceMetric,
+    distance: Metric,
     nTrees: Int): Props =
       Props(new NeighborhoodForestActor(points, distance, nTrees))
 }
 
 class NeighborhoodForestActor(
     points: List[Point],
-    metric: DistanceMetric,
+    metric: Metric,
     nTrees: Int) extends Actor with ActorLogging {
   import ActorProtocol._
   import com.codiply.barrio.neighbors.MemoryStats
@@ -58,7 +60,7 @@ class NeighborhoodForestActor(
     case request @ GetNeighborsRequest(coordinates, k, distanceThreshold, timeout) => {
       val originalSender = sender
       val searchActor = context.actorOf(NeighborhoodForestSearchActor.props(
-          originalSender, initialisedTrees, coordinates, k, metric.realDistanceToEasyDistance(distanceThreshold), timeout))
+          originalSender, initialisedTrees, coordinates, k, distanceThreshold, timeout))
     }
     case GetNodeStatsRequest(timeout) => {
       val runtime = Runtime.getRuntime
