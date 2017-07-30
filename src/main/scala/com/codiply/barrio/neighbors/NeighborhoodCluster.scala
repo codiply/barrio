@@ -18,7 +18,7 @@ import com.codiply.barrio.geometry.RealDistance
 class NeighborhoodCluster (
     actorSystem: ActorSystem,
     pointsLoader: () => Iterable[Point],
-    dimensions: Int,
+    config: NeighborhoodConfig,
     metric: Metric) extends NeighborProvider {
   import ActorProtocol._
   import forests.NeighborhoodForestActor
@@ -27,8 +27,8 @@ class NeighborhoodCluster (
 
   import actorSystem.dispatcher
 
-  // TODO: Take the number of trees from configuration
-  val nodeActor = actorSystem.actorOf(NeighborhoodForestActor.props(points, metric, 3), "neighborhood-node")
+  val nodeActor = actorSystem.actorOf(
+      NeighborhoodForestActor.props(points, metric, config.treesPerNode), "neighborhood-node")
 
   val nodeActorRouter = actorSystem.actorOf(
       ClusterRouterGroup(
@@ -43,7 +43,7 @@ class NeighborhoodCluster (
       NeighborhoodReceptionistActor.props(nodeActorRouter, metric), "receptionist")
 
   def getNeighbors(coordinates: List[Double], k: Int, distanceThreshold: RealDistance): Future[List[Point]] = {
-    if (coordinates.length == dimensions) {
+    if (coordinates.length == config.dimensions) {
       val timeout: FiniteDuration = 5.seconds
       implicit val askTimeout = Timeout(2 * timeout)
 

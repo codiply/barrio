@@ -7,7 +7,8 @@ import scopt.OptionParser
 
 case class ArgsConfig(
     file: String = "",
-    dimensions: Int = 1)
+    dimensions: Int = 1,
+    treesPerNode: Int = 3)
 
 object ArgsParser {
   private val parser = new OptionParser[ArgsConfig]("barrio") {
@@ -42,6 +43,17 @@ object ArgsParser {
       .action( (v, conf) => conf.copy(dimensions = v) )
       .text("the number of dimensions")
 
+    opt[Int]('t', "treesPerNode")
+      .maxOccurs(1)
+      .validate(n =>
+          if (n > 0) {
+            success
+          } else {
+            failure("Value <treesPerNode> must be >0")
+          })
+      .action( (v, conf) => conf.copy(treesPerNode = v) )
+      .text("the number of trees per node")
+
     help("help").text("prints this usage text")
   }
 
@@ -49,4 +61,3 @@ object ArgsParser {
     parser.parse(args, ArgsConfig())
   }
 }
-
