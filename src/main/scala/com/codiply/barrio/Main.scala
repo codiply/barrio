@@ -8,6 +8,7 @@ import com.codiply.barrio.helpers.ArgsConfig
 import com.codiply.barrio.helpers.ArgsParser
 import com.codiply.barrio.helpers.PointLoader
 import com.codiply.barrio.neighbors.NeighborhoodCluster
+import com.codiply.barrio.neighbors.NeighborhoodConfig
 import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.web.WebServer
@@ -23,7 +24,7 @@ object Main extends App {
 
       val metric = Metric.euclidean
 
-      val neighborhood = new NeighborhoodCluster(actorSystem, pointsLoader, argsConfig.dimensions, metric)
+      val neighborhood = new NeighborhoodCluster(actorSystem, pointsLoader, NeighborhoodConfig(argsConfig), metric)
 
       val webServer = new WebServer(neighborhood)
 
