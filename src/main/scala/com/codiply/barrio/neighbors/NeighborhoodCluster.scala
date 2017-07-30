@@ -28,16 +28,17 @@ class NeighborhoodCluster (
   import actorSystem.dispatcher
 
   val nodeActor = actorSystem.actorOf(
-      NeighborhoodForestActor.props(points, metric, config.treesPerNode), "neighborhood-node")
+      NeighborhoodForestActor.props(config.nodeName, points, metric, config.treesPerNode),
+      "neighborhood-node-" + config.nodeName)
 
   val nodeActorRouter = actorSystem.actorOf(
       ClusterRouterGroup(
-          BroadcastGroup(List("/user/neighborhood-node")),
+          BroadcastGroup(List("/user/neighborhood-node-*")),
           ClusterRouterGroupSettings(
               totalInstances = Int.MaxValue,
-              routeesPaths = List("/user/neighborhood-node"),
+              routeesPaths = List("/user/neighborhood-node-*"),
               allowLocalRoutees = true,
-              useRole = None)).props(), name = "neighborhood-node-router")
+              useRole = None)).props(), name = "router-to-neighborhood-nodes")
 
   val receptionistActor = actorSystem.actorOf(
       NeighborhoodReceptionistActor.props(nodeActorRouter, metric), "receptionist")

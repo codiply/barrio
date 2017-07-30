@@ -12,5 +12,5 @@ object ActorProtocol {
   final case class GetClusterStatsRequest(timeout: FiniteDuration)
   final case class GetNodeStatsRequest(timeout: FiniteDuration)
   final case class GetClusterStatsResponse(stats: ClusterStats)
-  final case class GetNodeStatsResponse(stats: NodeStats)
+  final case class GetNodeStatsResponse(nodeName: String, stats: NodeStats)
 }
