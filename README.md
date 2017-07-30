@@ -25,7 +25,7 @@ This will create 4 input files in `\data\grid\` folder.
 
 Run
 
-    sbt "run -f path-to-input-data-file"
+    sbt "run -f path-to-input-data-file -d number-of-dimensions"
     
 
 You can make a `POST` request to [http://localhost:18001/neighbors](http://localhost:18001/neighbors).
@@ -61,8 +61,8 @@ Bring the cluster down with
     
 ### Environment variables for node configuration
 
-- `AKKA_SYSTEM`: a consistent name across nodes that belong to one cluster
-- `CONTAINER_HOSTNAME`: the hostname of this node
-- `AKKA_REMOTING_PORT`: the port to be used by AKKA on this node
-- `AKKA_SEED_HOST`: the hostname of the seed node
-- `AKKA_SEED_PORT`: the port used by AKKA on the seed node
+- `BARRIO_HOSTNAME`: the hostname of this node
+- `BARRIO_WEB_API_PORT`: the port of the Web API endpoint
+- `BARRIO_AKKA_SYSTEM`: a consistent name across nodes that belong to one cluster
+- `BARRIO_AKKA_REMOTING_PORT`: the port to be used by AKKA on this node
+- `BARRIO_AKKA_SEED_HOST`: the seed node in the format `host:port` (do not include any protocol or actor system information)

@@ -13,19 +13,24 @@ import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.web.WebServer
 
 object Main extends App {
-  val config: ArgsConfig = ArgsParser.parse(args)
+  ArgsParser.parse(args) match {
+    case Some(argsConfig) =>
+      val config = ConfigFactory.load()
 
-  // TODO: get it from the environment variable
-  val actorSystem = ActorSystem("barrio")
+      val actorSystem = ActorSystem(config.getString("barrio.akka-system"))
 
-  val pointsLoader = () => PointLoader.fromFile(config.file)
+      val pointsLoader = () => PointLoader.fromCsvFile(argsConfig.file, argsConfig.dimensions)
 
-  val metric = Metric.euclidean
+      val metric = Metric.euclidean
 
-  val neighborhood = new NeighborhoodCluster(actorSystem, pointsLoader, metric)
+      val neighborhood = new NeighborhoodCluster(actorSystem, pointsLoader, argsConfig.dimensions, metric)
 
-  val webServer = new WebServer(neighborhood)
-  // TODO: get the port from the environment
-  val webServerPort = 18001
-  webServer.startServer("0.0.0.0", webServerPort, ServerSettings(ConfigFactory.load), Some(actorSystem))
+      val webServer = new WebServer(neighborhood)
+
+      val webServerHost = "0.0.0.0"
+      val webServerPort = config.getInt("barrio.web-api-port")
+
+      webServer.startServer(webServerHost, webServerPort, ServerSettings(config), Some(actorSystem))
+    case None => ()
+  }
 }
