@@ -39,7 +39,7 @@ object JsonSupport {
         trees = stats.trees.mapValues(mapTreeStats))
 
     def mapClusterStats(stats: ClusterStats): ClusterStatsJson =
-      ClusterStatsJson(nodes = stats.nodes.map(mapNodeStats))
+      ClusterStatsJson(nodes = stats.nodes.mapValues(mapNodeStats))
   }
 
   final case class MemoryStatsJson(
@@ -62,7 +62,7 @@ object JsonSupport {
     memory: MemoryStatsJson,
     trees: Map[String, TreeStatsJson])
 
-  final case class ClusterStatsJson(nodes: List[NodeStatsJson])
+  final case class ClusterStatsJson(nodes: Map[String, NodeStatsJson])
 }
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {

@@ -14,9 +14,10 @@ object NodeStatsAggregatorActor {
       responseRecipient: ActorRef,
       expectedNumberOfResponses: Int,
       timeout: FiniteDuration): Props = {
-        val initialValue = Nil
-        val folder = (allNodeStats: List[NodeStats], response: GetNodeStatsResponse) => response.stats :: allNodeStats
-        val mapper = (allNodeStats: List[NodeStats]) => GetClusterStatsResponse(ClusterStats(allNodeStats))
-        Props(new AggregatorActor(responseRecipient, initialValue, folder, mapper, expectedNumberOfResponses, timeout))
+        val initialValue = Map.empty[String, NodeStats]
+        val folder = (allNodeStats: Map[String, NodeStats], response: GetNodeStatsResponse) =>
+          allNodeStats + (response.nodeName -> response.stats)
+        val mapper = (allNodeStats: Map[String, NodeStats]) => GetClusterStatsResponse(ClusterStats(allNodeStats))
+        AggregatorActor.props(responseRecipient, initialValue, folder, mapper, expectedNumberOfResponses, timeout)
       }
 }

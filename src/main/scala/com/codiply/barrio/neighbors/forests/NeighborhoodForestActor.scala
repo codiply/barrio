@@ -20,13 +20,15 @@ import com.codiply.barrio.neighbors.TreeStats
 
 object NeighborhoodForestActor {
   def props(
+    name: String,
     points: List[Point],
     distance: Metric,
     nTrees: Int): Props =
-      Props(new NeighborhoodForestActor(points, distance, nTrees))
+      Props(new NeighborhoodForestActor(name, points, distance, nTrees))
 }
 
 class NeighborhoodForestActor(
+    name: String,
     points: List[Point],
     metric: Metric,
     nTrees: Int) extends Actor with ActorLogging {
@@ -75,7 +77,7 @@ class NeighborhoodForestActor(
       val originalSender = sender
 
       treeStatsResponse.map{ _.treeStats } onSuccess { case treeStats: Map[String, TreeStats] =>
-        originalSender ! GetNodeStatsResponse(NodeStats(
+        originalSender ! GetNodeStatsResponse(name, NodeStats(
             memory = MemoryStats(
                 freeMemoryMB = freeMemoryMB,
                 totalMemoryMB = totalMemoryMB,

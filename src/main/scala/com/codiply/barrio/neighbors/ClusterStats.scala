@@ -20,4 +20,4 @@ final case class NodeStats(
   memory: MemoryStats,
   trees: Map[String, TreeStats])
 
-final case class ClusterStats(nodes: List[NodeStats])
+final case class ClusterStats(nodes: Map[String, NodeStats])
