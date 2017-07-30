@@ -8,22 +8,19 @@ import akka.actor.Props
 import com.codiply.barrio.generic.AggregatorActor
 import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
-import com.codiply.barrio.geometry.Point.Coordinates
 import com.codiply.barrio.neighbors.ActorProtocol._
 
 object NeighborAggregatorActor {
   def props(
-      coordinates: Coordinates,
       kNeighbors: Int,
-      metric: Metric,
       responseRecipient: ActorRef,
       expectedNumberOfResponses: Int,
       timeout: FiniteDuration): Props = {
-        val initialValue = Nil
-        val folder = (neighbors: List[Point], response: GetNeighborsResponse) =>
-          (neighbors ++ response.neighbors).groupBy(_.id).map(_._2.head).toList.sortBy(p =>
-            metric.easyDistance(coordinates, p.location).value).take(kNeighbors)
-        val mapper = (neighbors: List[Point]) => GetNeighborsResponse(neighbors)
-        Props(new AggregatorActor(responseRecipient, initialValue, folder, mapper, expectedNumberOfResponses, timeout))
+        val initialValue = NearestNeighborsContainer.empty(kNeighbors)
+        val folder = (aggregateContainer: NearestNeighborsContainer, newContainer: NearestNeighborsContainer) =>
+          aggregateContainer.merge(newContainer)
+        val mapper = (aggregateContainer: NearestNeighborsContainer) =>
+          GetNeighborsResponse(aggregateContainer.orderedDistinctNeighbors.map(_.point).toList)
+        AggregatorActor.props(responseRecipient, initialValue, folder, mapper, expectedNumberOfResponses, timeout)
       }
 }
