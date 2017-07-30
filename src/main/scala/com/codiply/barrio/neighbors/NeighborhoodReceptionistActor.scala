@@ -41,7 +41,7 @@ class NeighborhoodReceptionistActor(
     case request @ GetNeighborsRequest(coordinates, k, distanceThreshold, aggregatorTimeout) => {
       val originalSender = sender
       val aggregator = context.actorOf(NeighborAggregatorActor.props(
-          coordinates, k, metric, originalSender, nodeCount, 2 * aggregatorTimeout))
+          k, originalSender, nodeCount, 2 * aggregatorTimeout))
       nodeActorRouter.tell(request, aggregator)
     }
     case request @ GetClusterStatsRequest(aggregatorTimeout) => {

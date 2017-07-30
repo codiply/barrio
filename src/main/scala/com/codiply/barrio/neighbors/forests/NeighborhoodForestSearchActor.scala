@@ -83,8 +83,7 @@ class NeighborhoodForestSearchActor(
 
   private def sendResponse() = {
     timeoutCancellable.cancel()
-    val neighbors = nearestNeighborsContainer.orderedDistinctNeighbors.map(_.point).toList
-    responseRecipient ! GetNeighborsResponse(neighbors)
+    responseRecipient ! nearestNeighborsContainer
     context.stop(self)
   }
 }
