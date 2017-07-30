@@ -5,14 +5,24 @@ import scala.io.Source
 import com.codiply.barrio.geometry.Point
 
 object PointLoader {
-  def fromFile(fileName: String): Iterable[Point] = {
+  def fromCsvFile(fileName: String, dimensions: Int): Iterable[Point] = {
     Source.fromFile(fileName).getLines.toIterable
       .filter { !_.isEmpty() }
       .map { _.split(",").map(_.trim) }
-      .map ( pieces => {
-        val id = pieces(0)
-        val coordinates = pieces.drop(1).map(_.toDouble).toList
-        Point(id, coordinates)
+      .flatMap( pieces => {
+        if (pieces.length == dimensions + 1) {
+          try {
+            val id = pieces(0)
+            val coordinates = pieces.drop(1).map(_.toDouble).toList
+            Some(Point(id, coordinates))
+          } catch {
+            case e: Exception =>
+              // TODO: log error
+              None
+          }
+        } else {
+          None
+        }
       })
   }
 }

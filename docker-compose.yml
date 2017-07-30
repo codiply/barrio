@@ -3,7 +3,7 @@ services:
   node-1:
     hostname: node-1
     build: ./docker/images/barrio/
-    command: java -jar /barrio/barrio.jar -f /data/grid/input-1.txt
+    command: java -jar /barrio/barrio.jar -f /data/grid/input-1.txt -d 7
     environment:
       - CONTAINER_HOSTNAME=node-1
       - AKKA_REMOTING_PORT=18011
@@ -21,7 +21,7 @@ services:
   node-2:
     hostname: node-2
     build: ./docker/images/barrio/
-    command: java -jar /barrio/barrio.jar -f /data/grid/input-2.txt
+    command: java -jar /barrio/barrio.jar -f /data/grid/input-2.txt -d 7
     environment:
       - CONTAINER_HOSTNAME=node-2
       - AKKA_REMOTING_PORT=18011
@@ -39,7 +39,7 @@ services:
   node-3:
     hostname: node-3
     build: ./docker/images/barrio/
-    command: java -jar /barrio/barrio.jar -f /data/grid/input-3.txt
+    command: java -jar /barrio/barrio.jar -f /data/grid/input-3.txt -d 7
     environment:
       - CONTAINER_HOSTNAME=node-3
       - AKKA_REMOTING_PORT=18011
@@ -57,7 +57,7 @@ services:
   node-4:
     hostname: node-4
     build: ./docker/images/barrio/
-    command: java -jar /barrio/barrio.jar -f /data/grid/input-4.txt
+    command: java -jar /barrio/barrio.jar -f /data/grid/input-4.txt -d 7
     environment:
       - CONTAINER_HOSTNAME=node-4
       - AKKA_REMOTING_PORT=18011

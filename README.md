@@ -25,7 +25,7 @@ This will create 4 input files in `\data\grid\` folder.
 
 Run
 
-    sbt "run -f path-to-input-data-file"
+    sbt "run -f path-to-input-data-file -d number-of-dimensions"
     
 
 You can make a `POST` request to [http://localhost:18001/neighbors](http://localhost:18001/neighbors).
