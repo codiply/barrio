@@ -7,14 +7,27 @@ import akka.actor.Actor
 import akka.actor.Actor.Receive
 import akka.actor.ActorRef
 import akka.actor.Cancellable
+import akka.actor.Props
+
+object AggregatorActor {
+  def props[TAggregate, TResponseIn: ClassTag, TResponseOut](
+    responseRecipient: ActorRef,
+    initialValue: TAggregate,
+    folder: (TAggregate, TResponseIn) => TAggregate,
+    mapper: TAggregate => TResponseOut,
+    expectedNumberOfResponses: Int,
+    timeout: FiniteDuration
+  ): Props = Props(new AggregatorActor(
+      responseRecipient, initialValue, folder, mapper, expectedNumberOfResponses, timeout))
+}
 
 object AggregatorActorProtocol {
   object DoSendAggregate
 }
 
-class AggregatorActor[TAggregate, TResponseIn:  ClassTag, TResponseOut](
+class AggregatorActor[TAggregate, TResponseIn: ClassTag, TResponseOut](
     responseRecipient: ActorRef,
-    initialAggregateValue: TAggregate,
+    initialValue: TAggregate,
     folder: (TAggregate, TResponseIn) => TAggregate,
     mapper: TAggregate => TResponseOut,
     expectedNumberOfResponses: Int,
@@ -22,7 +35,7 @@ class AggregatorActor[TAggregate, TResponseIn:  ClassTag, TResponseOut](
   import AggregatorActorProtocol._
   import context.dispatcher
 
-  var currentAggregateValue: TAggregate = initialAggregateValue
+  var currentAggregateValue: TAggregate = initialValue
   var outstandingIncomingResponses = expectedNumberOfResponses
 
   var timeoutCancellable: Option[Cancellable] = None
