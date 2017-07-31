@@ -15,13 +15,12 @@ import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
 
 object NeighborhoodReceptionistActor {
-  def props(nodeActorRouter: ActorRef, metric: Metric): Props =
-    Props(new NeighborhoodReceptionistActor(nodeActorRouter, metric))
+  def props(nodeActorRouter: ActorRef): Props =
+    Props(new NeighborhoodReceptionistActor(nodeActorRouter))
 }
 
 class NeighborhoodReceptionistActor(
-    nodeActorRouter: ActorRef,
-    metric: Metric) extends Actor with ActorLogging {
+    nodeActorRouter: ActorRef) extends Actor with ActorLogging {
   import ActorProtocol._
 
   val cluster = Cluster(context.system)

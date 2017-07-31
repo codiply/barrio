@@ -5,10 +5,17 @@ import java.nio.file.Paths
 
 import scopt.OptionParser
 
+object ArgsConfig {
+  val defaultDimensions = 1
+  val defaultMaxPointsPerLeaf = 128
+  val defaultTreesPerNode = 3
+}
+
 case class ArgsConfig(
     file: String = "",
-    dimensions: Int = 1,
-    treesPerNode: Int = 3)
+    dimensions: Int = ArgsConfig.defaultDimensions,
+    maxPointsPerLeaf: Int = ArgsConfig.defaultMaxPointsPerLeaf,
+    treesPerNode: Int = ArgsConfig.defaultTreesPerNode)
 
 object ArgsParser {
   private val parser = new OptionParser[ArgsConfig]("barrio") {
@@ -53,6 +60,17 @@ object ArgsParser {
           })
       .action( (v, conf) => conf.copy(treesPerNode = v) )
       .text("the number of trees per node")
+
+    opt[Int]('l', "maxPointsPerLeaf")
+      .maxOccurs(1)
+      .validate(n =>
+          if (n > 0) {
+            success
+          } else {
+            failure("Value <maxPointsPerLeaf> must be >0")
+          })
+      .action( (v, conf) => conf.copy(maxPointsPerLeaf = v) )
+      .text("the maximum number of points per leaf")
 
     help("help").text("prints this usage text")
   }
