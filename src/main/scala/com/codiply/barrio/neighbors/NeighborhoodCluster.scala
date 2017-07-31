@@ -18,17 +18,17 @@ import com.codiply.barrio.geometry.RealDistance
 class NeighborhoodCluster (
     actorSystem: ActorSystem,
     pointsLoader: () => Iterable[Point],
-    config: NeighborhoodConfig,
-    metric: Metric) extends NeighborProvider {
+    config: NeighborhoodConfig) extends NeighborProvider {
   import ActorProtocol._
   import forests.NeighborhoodForestActor
 
   val points = pointsLoader().toList
+  val metric = config.metric
 
   import actorSystem.dispatcher
 
   val nodeActor = actorSystem.actorOf(
-      NeighborhoodForestActor.props(config.nodeName, points, metric, config.treesPerNode),
+      NeighborhoodForestActor.props(config.nodeName, points, config),
       "neighborhood-node-" + config.nodeName)
 
   val nodeActorRouter = actorSystem.actorOf(
@@ -41,7 +41,7 @@ class NeighborhoodCluster (
               useRole = None)).props(), name = "router-to-neighborhood-nodes")
 
   val receptionistActor = actorSystem.actorOf(
-      NeighborhoodReceptionistActor.props(nodeActorRouter, metric), "receptionist")
+      NeighborhoodReceptionistActor.props(nodeActorRouter), "receptionist")
 
   def getNeighbors(coordinates: List[Double], k: Int, distanceThreshold: RealDistance): Future[List[Point]] = {
     if (coordinates.length == config.dimensions) {

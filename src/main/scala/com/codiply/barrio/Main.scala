@@ -24,11 +24,8 @@ object Main extends App {
 
       val pointsLoader = () => PointLoader.fromCsvFile(argsConfig.file, argsConfig.dimensions)
 
-      val metric = Metric.euclidean
-
       val neighborhoodConfig = NeighborhoodConfig(argsConfig, config)
-      val neighborhood = new NeighborhoodCluster(
-          actorSystem, pointsLoader, neighborhoodConfig, metric)
+      val neighborhood = new NeighborhoodCluster(actorSystem, pointsLoader, neighborhoodConfig)
 
       val webServer = new WebServer(neighborhood)
 

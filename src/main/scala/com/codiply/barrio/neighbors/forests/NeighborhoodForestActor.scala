@@ -11,6 +11,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 
 import com.codiply.barrio.neighbors.ActorProtocol._
+import com.codiply.barrio.neighbors.NeighborhoodConfig
 import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.geometry.RealDistance
@@ -22,16 +23,14 @@ object NeighborhoodForestActor {
   def props(
     name: String,
     points: List[Point],
-    distance: Metric,
-    nTrees: Int): Props =
-      Props(new NeighborhoodForestActor(name, points, distance, nTrees))
+    config: NeighborhoodConfig): Props =
+      Props(new NeighborhoodForestActor(name, points, config))
 }
 
 class NeighborhoodForestActor(
     name: String,
     points: List[Point],
-    metric: Metric,
-    nTrees: Int) extends Actor with ActorLogging {
+    config: NeighborhoodConfig) extends Actor with ActorLogging {
   import ActorProtocol._
   import com.codiply.barrio.neighbors.MemoryStats
   import com.codiply.barrio.neighbors.TreeStats
@@ -44,9 +43,9 @@ class NeighborhoodForestActor(
 
   val statsActor = context.actorOf(NeihborhoodForestStatsActor.props(), "stats-actor")
 
-  val trees = (1 to nTrees).map(i => {
+  val trees = (1 to config.treesPerNode).map(i => {
     val name = "tree-" + i
-    context.actorOf(NeighborhoodTreeActor.props(name, points, metric, 0, statsActor), name)
+    context.actorOf(NeighborhoodTreeActor.props(name, points, config, 0, statsActor), name)
   }).toList
 
   var initialisedTreesCount = 0

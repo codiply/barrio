@@ -10,21 +10,22 @@ import akka.actor.Props
 
 import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
+import com.codiply.barrio.neighbors.NeighborhoodConfig
 
 object NeighborhoodTreeActor {
   def props(
       rootTreeName: String,
       points: List[Point],
-      metric: Metric,
+      config: NeighborhoodConfig,
       thisRootDepth: Int,
       statsActor: ActorRef): Props =
-    Props(new NeighborhoodTreeActor(rootTreeName, points, metric, thisRootDepth, statsActor))
+    Props(new NeighborhoodTreeActor(rootTreeName, points, config, thisRootDepth, statsActor))
 }
 
 class NeighborhoodTreeActor(
     rootTreeName: String,
     points: List[Point],
-    metric: Metric,
+    config: NeighborhoodConfig,
     thisRootDepth: Int,
     statsActor: ActorRef) extends Actor with ActorLogging {
   import com.codiply.barrio.geometry.EasyDistance
@@ -43,11 +44,10 @@ class NeighborhoodTreeActor(
 
   var initialisedChildrenCount = 0
 
-  // TODO: make the threshold of 100 points configurable
-  val minPointsForSplit = 100
+  val metric = config.metric
 
   val nodeSettings =
-    if (points.take(minPointsForSplit).length == minPointsForSplit) {
+    if (points.take(config.maxPointsPerLeaf + 1).length > config.maxPointsPerLeaf) {
       // TODO: Pick 2 random points that are not equal
       val centroids = Random.shuffle(points).take(2).toArray
       val centroidLeft = centroids(0).location
@@ -59,7 +59,7 @@ class NeighborhoodTreeActor(
       val (pointsLeft, pointsRight) = points.partition { (p: Point) => isCloserToLeft(p.location) }
 
       def createChildActor(pts: List[Point]) =
-        context.actorOf(props(rootTreeName, pts, metric, thisRootDepth + 1, statsActor))
+        context.actorOf(props(rootTreeName, pts, config, thisRootDepth + 1, statsActor))
 
       val childLeftActorRef = createChildActor(pointsLeft)
       val childRightActorRef = createChildActor(pointsRight)
