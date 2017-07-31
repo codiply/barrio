@@ -43,15 +43,15 @@ class NeighborhoodCluster (
   val receptionistActor = actorSystem.actorOf(
       NeighborhoodReceptionistActor.props(nodeActorRouter), "receptionist")
 
-  def getNeighbors(coordinates: List[Double], k: Int, distanceThreshold: RealDistance): Future[List[Point]] = {
-    if (coordinates.length == config.dimensions) {
+  def getNeighbors(location: List[Double], k: Int, distanceThreshold: RealDistance): Future[List[Point]] = {
+    if (location.length == config.dimensions) {
       val timeout: FiniteDuration = 5.seconds
       implicit val askTimeout = Timeout(2 * timeout)
 
       metric.toEasyDistance(distanceThreshold) match {
         case Some(easyDistanceThreshold) =>
           (receptionistActor ? GetNeighborsRequest(
-            coordinates, k , easyDistanceThreshold, timeout)).mapTo[GetNeighborsResponse].map(_.neighbors)
+            location, k , easyDistanceThreshold, timeout)).mapTo[GetNeighborsResponse].map(_.neighbors)
         case None => Future(List[Point]())
       }
     } else {

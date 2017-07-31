@@ -32,7 +32,7 @@ You can make a `POST` request to [http://localhost:18001/neighbors](http://local
 For example, to get the 3 nearest neighbors from the origin, the request is
 
     {
-      "coordinates": [0.0, 0.0, 0.0],
+      "location": [0.0, 0.0, 0.0],
       "k": 3,
       "distanceThreshold": 1.0
     }

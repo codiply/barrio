@@ -10,8 +10,8 @@ object JsonSupport {
   import com.codiply.barrio.neighbors.NodeStats
   import com.codiply.barrio.neighbors.TreeStats
 
-  final case class NeighborJson(id: String, coordinates: List[Double])
-  final case class NeighborsRequestJson(k: Int, coordinates: List[Double], distanceThreshold: Double)
+  final case class NeighborJson(id: String, location: List[Double])
+  final case class NeighborsRequestJson(k: Int, location: List[Double], distanceThreshold: Double)
   final case class NeighborsResponseJson(neighbors: List[NeighborJson])
 
   object Mapping {

@@ -58,10 +58,10 @@ class NeighborhoodForestActor(
         initialisedTrees = sender +: initialisedTrees
       }
     }
-    case request @ GetNeighborsRequest(coordinates, k, distanceThreshold, timeout) => {
+    case request @ GetNeighborsRequest(location, k, distanceThreshold, timeout) => {
       val originalSender = sender
       val searchActor = context.actorOf(NeighborhoodForestSearchActor.props(
-          originalSender, initialisedTrees, coordinates, k, distanceThreshold, timeout))
+          originalSender, initialisedTrees, location, k, distanceThreshold, timeout))
     }
     case GetNodeStatsRequest(timeout) => {
       val runtime = Runtime.getRuntime

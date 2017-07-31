@@ -31,7 +31,7 @@ class WebServer(neighborhood: NeighborProvider) extends HttpApp with JsonSupport
         decodeRequest {
           entity(as[NeighborsRequestJson]) { request =>
             onSuccess(neighborhood.getNeighbors(
-                request.coordinates, request.k, RealDistance(request.distanceThreshold))) { neighbors =>
+                request.location, request.k, RealDistance(request.distanceThreshold))) { neighbors =>
               val response = NeighborsResponseJson(neighbors.map(p => NeighborJson(p.id, p.location))).toJson
               complete(HttpEntity(ContentTypes.`application/json`, response.toString))
             }
