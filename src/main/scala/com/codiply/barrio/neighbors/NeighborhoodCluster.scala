@@ -10,6 +10,7 @@ import akka.pattern.ask
 import akka.routing.BroadcastGroup
 import akka.util.Timeout
 
+import com.codiply.barrio.helpers.RandomProvider
 import com.codiply.barrio.geometry.EasyDistance
 import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
@@ -18,7 +19,8 @@ import com.codiply.barrio.geometry.RealDistance
 class NeighborhoodCluster (
     actorSystem: ActorSystem,
     pointsLoader: () => Iterable[Point],
-    config: NeighborhoodConfig) extends NeighborProvider {
+    config: NeighborhoodConfig,
+    random: RandomProvider) extends NeighborProvider {
   import ActorProtocol._
   import forests.NeighborhoodForestActor
 
@@ -28,7 +30,7 @@ class NeighborhoodCluster (
   import actorSystem.dispatcher
 
   val nodeActor = actorSystem.actorOf(
-      NeighborhoodForestActor.props(config.nodeName, points, config),
+      NeighborhoodForestActor.props(config.nodeName, points, config, random),
       "neighborhood-node-" + config.nodeName)
 
   val nodeActorRouter = actorSystem.actorOf(

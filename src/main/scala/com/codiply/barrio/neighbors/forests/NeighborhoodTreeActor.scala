@@ -10,6 +10,7 @@ import akka.actor.Props
 
 import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
+import com.codiply.barrio.helpers.RandomProvider
 import com.codiply.barrio.neighbors.NeighborhoodConfig
 
 object NeighborhoodTreeActor {
@@ -17,15 +18,17 @@ object NeighborhoodTreeActor {
       rootTreeName: String,
       points: List[Point],
       config: NeighborhoodConfig,
+      random: RandomProvider,
       thisRootDepth: Int,
       statsActor: ActorRef): Props =
-    Props(new NeighborhoodTreeActor(rootTreeName, points, config, thisRootDepth, statsActor))
+    Props(new NeighborhoodTreeActor(rootTreeName, points, config, random, thisRootDepth, statsActor))
 }
 
 class NeighborhoodTreeActor(
     rootTreeName: String,
     points: List[Point],
     config: NeighborhoodConfig,
+    random: RandomProvider,
     thisRootDepth: Int,
     statsActor: ActorRef) extends Actor with ActorLogging {
   import com.codiply.barrio.geometry.EasyDistance
@@ -59,7 +62,7 @@ class NeighborhoodTreeActor(
       val (pointsLeft, pointsRight) = points.partition { (p: Point) => isCloserToLeft(p.location) }
 
       def createChildActor(pts: List[Point]) =
-        context.actorOf(props(rootTreeName, pts, config, thisRootDepth + 1, statsActor))
+        context.actorOf(props(rootTreeName, pts, config, random.getNew(), thisRootDepth + 1, statsActor))
 
       val childLeftActorRef = createChildActor(pointsLeft)
       val childRightActorRef = createChildActor(pointsRight)
