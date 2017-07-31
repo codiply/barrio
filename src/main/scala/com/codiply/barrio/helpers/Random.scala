@@ -10,7 +10,9 @@ trait RandomProvider {
   def nextFloat(): Float
   def nextDouble(): Double
 
-  def getNew(): RandomProvider
+  def getRandomElement[T](list: List[T]): Option[T]
+
+  def createNew(): RandomProvider
 }
 
 object Random {
@@ -30,7 +32,15 @@ class Random(seed: Int) extends RandomProvider {
   def nextFloat(): Float = rand.nextFloat()
   def nextDouble(): Double = rand.nextDouble()
 
-  def getNew(): RandomProvider = {
+  def getRandomElement[T](list: List[T]): Option[T] = {
+    if (list.isEmpty) {
+      None
+    } else {
+      Some(list.map { x => (x, nextDouble) }.maxBy { _._2 }._1)
+    }
+  }
+
+  def createNew(): RandomProvider = {
     new Random(nextInt())
   }
 }

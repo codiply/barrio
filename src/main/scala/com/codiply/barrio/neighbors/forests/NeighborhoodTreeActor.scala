@@ -36,6 +36,7 @@ class NeighborhoodTreeActor(
   import com.codiply.barrio.geometry.Point.Coordinates
   import com.codiply.barrio.neighbors.ActorProtocol._
   import com.codiply.barrio.neighbors.forests.ActorProtocol._
+  import com.codiply.barrio.neighbors.forests.CentroidSelectionAlgorithm
   import com.codiply.barrio.neighbors.forests.NeighborhoodForestSearchActorProtocol._
   import com.codiply.barrio.neighbors.forests.NeighborhoodTreeActor._
   import com.codiply.barrio.neighbors.NearestNeighborsContainer
@@ -48,34 +49,33 @@ class NeighborhoodTreeActor(
   var initialisedChildrenCount = 0
 
   val metric = config.metric
+  val centroidSelector = CentroidSelectionAlgorithm.randomFurthest
 
   val nodeSettings =
     if (points.take(config.maxPointsPerLeaf + 1).length > config.maxPointsPerLeaf) {
-      // TODO: Pick 2 random points that are not equal
-      val centroids = Random.shuffle(points).take(2).toArray
-      val centroidLeft = centroids(0).location
-      val centroidRight = centroids(1).location
+      centroidSelector.select(random, points, metric).map { case (centroidLeft, centroidRight) => {
+          val isCloserToLeft = (location: Coordinates) =>
+            metric.easyDistance(centroidLeft, location).lessThan(
+                metric.easyDistance(centroidRight, location))
+          val (pointsLeft, pointsRight) = points.partition { (p: Point) => isCloserToLeft(p.location) }
 
-      val isCloserToLeft = (location: Coordinates) =>
-        metric.easyDistance(centroidLeft, location).lessThan(
-            metric.easyDistance(centroidRight, location))
-      val (pointsLeft, pointsRight) = points.partition { (p: Point) => isCloserToLeft(p.location) }
+          def createChildActor(pts: List[Point]) =
+            context.actorOf(props(rootTreeName, pts, config, random.createNew(), thisRootDepth + 1, statsActor))
 
-      def createChildActor(pts: List[Point]) =
-        context.actorOf(props(rootTreeName, pts, config, random.getNew(), thisRootDepth + 1, statsActor))
+          val childLeftActorRef = createChildActor(pointsLeft)
+          val childRightActorRef = createChildActor(pointsRight)
 
-      val childLeftActorRef = createChildActor(pointsLeft)
-      val childRightActorRef = createChildActor(pointsRight)
+          val childLeft = Child(centroidLeft, childLeftActorRef)
+          val childRight = Child(centroidRight, childRightActorRef)
 
-      val childLeft = Child(centroidLeft, childLeftActorRef)
-      val childRight = Child(centroidRight, childRightActorRef)
+          // In the unlikely event that the two centroids have the same coordinates,
+          // give zero distance to the boundary so that both leafs are inspected.
+          val distanceToBoundary = metric.easyDistanceToPlane(
+              PartitioningPlane(centroidLeft, centroidRight)).getOrElse((x: Coordinates) => EasyDistance(0.0))
 
-      // In the unlikely event that the two centroids have the same coordinates,
-      // give zero distance to the boundary so that both leafs are inspected.
-      val distanceToBoundary = metric.easyDistanceToPlane(
-          PartitioningPlane(centroidLeft, centroidRight)).getOrElse((x: Coordinates) => EasyDistance(0.0))
-
-      Some(NodeSettings(Children(left = childLeft, right = childRight), isCloserToLeft, distanceToBoundary))
+          NodeSettings(Children(left = childLeft, right = childRight), isCloserToLeft, distanceToBoundary)
+        }
+      }
     } else {
       None
     }
