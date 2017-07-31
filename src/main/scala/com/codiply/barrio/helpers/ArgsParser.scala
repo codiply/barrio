@@ -15,6 +15,7 @@ case class ArgsConfig(
     file: String = "",
     dimensions: Int = ArgsConfig.defaultDimensions,
     maxPointsPerLeaf: Int = ArgsConfig.defaultMaxPointsPerLeaf,
+    randomSeed: Option[Int] = None,
     treesPerNode: Int = ArgsConfig.defaultTreesPerNode)
 
 object ArgsParser {
@@ -50,17 +51,6 @@ object ArgsParser {
       .action( (v, conf) => conf.copy(dimensions = v) )
       .text("the number of dimensions")
 
-    opt[Int]('t', "treesPerNode")
-      .maxOccurs(1)
-      .validate(n =>
-          if (n > 0) {
-            success
-          } else {
-            failure("Value <treesPerNode> must be >0")
-          })
-      .action( (v, conf) => conf.copy(treesPerNode = v) )
-      .text("the number of trees per node")
-
     opt[Int]('l', "maxPointsPerLeaf")
       .maxOccurs(1)
       .validate(n =>
@@ -71,6 +61,22 @@ object ArgsParser {
           })
       .action( (v, conf) => conf.copy(maxPointsPerLeaf = v) )
       .text("the maximum number of points per leaf")
+
+    opt[Int]('s', "randomSeed")
+      .maxOccurs(1)
+      .action( (v, conf) => conf.copy(randomSeed = Some(v)) )
+      .text("the seed for the random number generator")
+
+    opt[Int]('t', "treesPerNode")
+      .maxOccurs(1)
+      .validate(n =>
+          if (n > 0) {
+            success
+          } else {
+            failure("Value <treesPerNode> must be >0")
+          })
+      .action( (v, conf) => conf.copy(treesPerNode = v) )
+      .text("the number of trees per node")
 
     help("help").text("prints this usage text")
   }
