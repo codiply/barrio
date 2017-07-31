@@ -98,11 +98,11 @@ class NeighborhoodTreeActor(
                 closerToLeft,
                 distanceToPartitioningPlane)) => {
           val closerToLeft =
-            metric.easyDistance(centroidLeft, request.coordinates).lessThan(
-                metric.easyDistance(centroidRight, request.coordinates))
+            metric.easyDistance(centroidLeft, request.location).lessThan(
+                metric.easyDistance(centroidRight, request.location))
           val selectedSubTree = if (closerToLeft) treeLeft else treeRight
           val otherSubTree = if (closerToLeft) treeRight else treeLeft
-          val dist = distanceToPartitioningPlane(request.coordinates)
+          val dist = distanceToPartitioningPlane(request.location)
           if (dist.lessEqualThan(request.distanceThreshold)) {
             sender ! EnqueueCandidate(CandidateSubTree(otherSubTree, dist))
           }
@@ -110,7 +110,7 @@ class NeighborhoodTreeActor(
         }
         case None => {
           val nearestNeighborsContainer =
-            NearestNeighborsContainer.apply(points, request.k, p => metric.easyDistance(p.location, request.coordinates))
+            NearestNeighborsContainer(points, request.k, p => metric.easyDistance(p.location, request.location))
           sender ! NeighborsSearchLeafResponse(nearestNeighborsContainer)
         }
       }

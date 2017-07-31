@@ -13,8 +13,8 @@ object PointLoader {
         if (pieces.length == dimensions + 1) {
           try {
             val id = pieces(0)
-            val coordinates = pieces.drop(1).map(_.toDouble).toList
-            Some(Point(id, coordinates))
+            val location = pieces.drop(1).map(_.toDouble).toList
+            Some(Point(id, location))
           } catch {
             case e: Exception =>
               // TODO: log error

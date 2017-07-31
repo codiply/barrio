@@ -16,16 +16,16 @@ object NeighborhoodForestSearchActor {
   def props(
       responseRecipient: ActorRef,
       treesToSearch: List[ActorRef],
-      coordinates: List[Double],
+      location: List[Double],
       k: Int,
       distanceThreshold: EasyDistance,
       timeout: FiniteDuration): Props = Props(new NeighborhoodForestSearchActor(
-          responseRecipient, treesToSearch, coordinates, k, distanceThreshold, timeout))
+          responseRecipient, treesToSearch, location, k, distanceThreshold, timeout))
 }
 
 object NeighborhoodForestSearchActorProtocol {
   final object DoSendResponse
-  final case class NeighborsSearchTreeRequest(coordinates: List[Double], k: Int, distanceThreshold: EasyDistance)
+  final case class NeighborsSearchTreeRequest(location: List[Double], k: Int, distanceThreshold: EasyDistance)
   final case class NeighborsSearchLeafResponse(container: NearestNeighborsContainer)
   final case class CandidateSubTree(root: ActorRef, minDistance: EasyDistance)
   final case class EnqueueCandidate(candidate: CandidateSubTree)
@@ -34,7 +34,7 @@ object NeighborhoodForestSearchActorProtocol {
 class NeighborhoodForestSearchActor(
       responseRecipient: ActorRef,
       treesToSearch: List[ActorRef],
-      coordinates: List[Double],
+      location: List[Double],
       k: Int,
       distanceThreshold: EasyDistance,
       timeout: FiniteDuration) extends Actor with ActorLogging {
@@ -77,7 +77,7 @@ class NeighborhoodForestSearchActor(
     }
     else {
       val subTree = prioritisedSubTrees.dequeue()
-      subTree.root ! NeighborsSearchTreeRequest(coordinates, k, distanceThreshold)
+      subTree.root ! NeighborsSearchTreeRequest(location, k, distanceThreshold)
     }
   }
 
