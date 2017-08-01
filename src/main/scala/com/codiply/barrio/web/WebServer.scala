@@ -20,9 +20,11 @@ class WebServer(neighborhood: NeighborProvider) extends HttpApp with JsonSupport
     } ~
     path("stats") {
       get {
-        onSuccess(neighborhood.getStats()) { case stats: ClusterStats =>
-          val response = Mapping.mapClusterStats(stats).toJson
-          complete(HttpEntity(ContentTypes.`application/json`, response.toString))
+        parameters('gc.as[Boolean] ? false) { (doGarbageCollect) =>
+          onSuccess(neighborhood.getStats(doGarbageCollect)) { case stats: ClusterStats =>
+            val response = Mapping.mapClusterStats(doGarbageCollect, stats).toJson
+            complete(HttpEntity(ContentTypes.`application/json`, response.toString))
+          }
         }
       }
     } ~

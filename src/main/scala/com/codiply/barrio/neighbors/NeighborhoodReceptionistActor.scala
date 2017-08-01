@@ -43,11 +43,11 @@ class NeighborhoodReceptionistActor(
           k, originalSender, nodeCount, 2 * aggregatorTimeout))
       nodeActorRouter.tell(request, aggregator)
     }
-    case request @ GetClusterStatsRequest(aggregatorTimeout) => {
+    case request @ GetClusterStatsRequest(aggregatorTimeout, doGarbageCollect) => {
       val originalSender = sender
       val aggregator = context.actorOf(NodeStatsAggregatorActor.props(
           originalSender, nodeCount, 2 * aggregatorTimeout))
-      nodeActorRouter.tell(GetNodeStatsRequest(aggregatorTimeout), aggregator)
+      nodeActorRouter.tell(GetNodeStatsRequest(aggregatorTimeout, doGarbageCollect), aggregator)
     }
   }
 

@@ -48,8 +48,10 @@ class NeighborhoodForestActor(
 
   val trees = (1 to config.treesPerNode).map(i => {
     val name = "tree-" + i
-    context.actorOf(NeighborhoodTreeActor.props(name, points, config, random.createNew(), 0, statsActor), name)
+    context.actorOf(NeighborhoodTreeActor.props(name, config, random.createNew(), 0, statsActor), name)
   }).toList
+
+  trees.foreach { _ ! InitialiseTree(points) }
 
   var initialisedTreesCount = 0
   var initialisedTrees: List[ActorRef] = Nil
@@ -66,8 +68,12 @@ class NeighborhoodForestActor(
       val searchActor = context.actorOf(NeighborhoodForestSearchActor.props(
           originalSender, initialisedTrees, location, k, distanceThreshold, timeout))
     }
-    case GetNodeStatsRequest(timeout) => {
+    case GetNodeStatsRequest(timeout, doGarbageCollect) => {
       val runtime = Runtime.getRuntime
+
+      if (doGarbageCollect) {
+        runtime.gc()
+      }
 
       val mb = 1024 * 1024
       val freeMemoryMB = runtime.freeMemory.toDouble / mb;

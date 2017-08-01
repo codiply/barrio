@@ -16,17 +16,15 @@ import com.codiply.barrio.neighbors.NeighborhoodConfig
 object NeighborhoodTreeActor {
   def props(
       rootTreeName: String,
-      points: List[Point],
       config: NeighborhoodConfig,
       random: RandomProvider,
       thisRootDepth: Int,
       statsActor: ActorRef): Props =
-    Props(new NeighborhoodTreeActor(rootTreeName, points, config, random, thisRootDepth, statsActor))
+    Props(new NeighborhoodTreeActor(rootTreeName, config, random, thisRootDepth, statsActor))
 }
 
 class NeighborhoodTreeActor(
     rootTreeName: String,
-    points: List[Point],
     config: NeighborhoodConfig,
     random: RandomProvider,
     thisRootDepth: Int,
@@ -51,55 +49,63 @@ class NeighborhoodTreeActor(
   val metric = config.metric
   val centroidSelector = CentroidSelectionAlgorithm.randomFurthest
 
-  val nodeSettings =
-    if (points.take(config.maxPointsPerLeaf + 1).length > config.maxPointsPerLeaf) {
-      centroidSelector.select(random, points, metric).map { case (centroidLeft, centroidRight) => {
-          val isCloserToLeft = (location: Coordinates) =>
-            metric.easyDistance(centroidLeft, location).lessThan(
-                metric.easyDistance(centroidRight, location))
-          val (pointsLeft, pointsRight) = points.partition { (p: Point) => isCloserToLeft(p.location) }
+  def receive: Receive = receiveInitial
 
-          def createChildActor(pts: List[Point]) =
-            context.actorOf(props(rootTreeName, pts, config, random.createNew(), thisRootDepth + 1, statsActor))
+  def receiveInitial: Receive = {
+    case InitialiseTree(points: List[Point]) => {
+      val nodeSettings =
+        if (points.take(config.maxPointsPerLeaf + 1).length > config.maxPointsPerLeaf) {
+          centroidSelector.select(random, points, metric).map { case (centroidLeft, centroidRight) => {
+            val isCloserToLeft = (location: Coordinates) =>
+              metric.easyDistance(centroidLeft, location).lessThan(
+                  metric.easyDistance(centroidRight, location))
+              val (pointsLeft, pointsRight) = points.partition { (p: Point) => isCloserToLeft(p.location) }
 
-          val childLeftActorRef = createChildActor(pointsLeft)
-          val childRightActorRef = createChildActor(pointsRight)
+            def createChildActor() =
+              context.actorOf(props(rootTreeName, config, random.createNew(), thisRootDepth + 1, statsActor))
 
-          val childLeft = Child(centroidLeft, childLeftActorRef)
-          val childRight = Child(centroidRight, childRightActorRef)
+            val childLeftActorRef = createChildActor()
+            childLeftActorRef ! InitialiseTree(pointsLeft)
+            val childRightActorRef = createChildActor()
+            childRightActorRef ! InitialiseTree(pointsRight)
 
-          // In the unlikely event that the two centroids have the same coordinates,
-          // give zero distance to the boundary so that both leafs are inspected.
-          val distanceToBoundary = metric.easyDistanceToPlane(
-              PartitioningPlane(centroidLeft, centroidRight)).getOrElse((x: Coordinates) => EasyDistance(0.0))
+            val childLeft = Child(centroidLeft, childLeftActorRef)
+            val childRight = Child(centroidRight, childRightActorRef)
 
-          NodeSettings(Children(left = childLeft, right = childRight), isCloserToLeft, distanceToBoundary)
+            // In the unlikely event that the two centroids have the same coordinates,
+            // give zero distance to the boundary so that both leafs are inspected.
+            val distanceToBoundary = metric.easyDistanceToPlane(
+                PartitioningPlane(centroidLeft, centroidRight)).getOrElse((x: Coordinates) => EasyDistance(0.0))
+
+            NodeSettings(Children(left = childLeft, right = childRight), isCloserToLeft, distanceToBoundary)
+          }
+        }
+      } else {
+        None
+      }
+
+      nodeSettings match {
+        case Some(settings) => {
+          context.become(receiveNode(settings))
+        }
+        case None => {
+          signalTreeInitialised()
+          sendStats(points)
+          context.become(receiveLeaf(points))
         }
       }
-    } else {
-      None
     }
-
-  val isLeaf = !nodeSettings.isDefined
-
-  if (isLeaf) {
-    signalTreeInitialised()
-    sendStats()
-  } else {
-    context.become(receive orElse receiveNode)
   }
 
-  def receive: Receive = receiveCommon
-
-  def receiveCommon: Receive = {
+  def receiveNode(nodeSettings: NodeSettings): Receive = {
     case request: NeighborsSearchTreeRequest => {
       nodeSettings match {
-        case Some(NodeSettings(
+        case NodeSettings(
             Children(
                 Child(centroidLeft, treeLeft),
                 Child(centroidRight, treeRight)),
                 closerToLeft,
-                distanceToPartitioningPlane)) => {
+                distanceToPartitioningPlane) => {
           val closerToLeft =
             metric.easyDistance(centroidLeft, request.location).lessThan(
                 metric.easyDistance(centroidRight, request.location))
@@ -111,19 +117,19 @@ class NeighborhoodTreeActor(
           }
           selectedSubTree.forward(request)
         }
-        case None => {
-          val nearestNeighborsContainer =
-            NearestNeighborsContainer(points, request.k, p => metric.easyDistance(p.location, request.location))
-          sender ! NeighborsSearchLeafResponse(nearestNeighborsContainer)
-        }
       }
     }
-  }
-
-  def receiveNode: Receive = {
     case TreeInitialised => {
       initialisedChildrenCount += 1
       if (initialisedChildrenCount == 2) signalTreeInitialised()
+    }
+  }
+
+  def receiveLeaf(points: List[Point]): Receive = {
+    case request: NeighborsSearchTreeRequest => {
+      val nearestNeighborsContainer =
+        NearestNeighborsContainer(points, request.k, p => metric.easyDistance(p.location, request.location))
+      sender ! NeighborsSearchLeafResponse(nearestNeighborsContainer)
     }
   }
 
@@ -131,7 +137,7 @@ class NeighborhoodTreeActor(
     context.parent ! TreeInitialised
   }
 
-  private def sendStats() = {
+  private def sendStats(points: List[Point]) = {
     statsActor ! NeighborhoodTreeLeafStats(
         treeName = rootTreeName,
         depth = thisRootDepth,
