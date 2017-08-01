@@ -61,9 +61,10 @@ class NeighborhoodCluster (
     }
   }
 
-  def getStats(): Future[ClusterStats] = {
+  def getStats(doGarbageCollect: Boolean): Future[ClusterStats] = {
     val timeout: FiniteDuration = 3.minutes
     implicit val askTimeout = Timeout(2 * timeout)
-    (receptionistActor ? GetClusterStatsRequest(timeout)).mapTo[GetClusterStatsResponse].map(_.stats)
+    val response = (receptionistActor ? GetClusterStatsRequest(timeout, doGarbageCollect))
+    response.mapTo[GetClusterStatsResponse].map(_.stats)
   }
 }

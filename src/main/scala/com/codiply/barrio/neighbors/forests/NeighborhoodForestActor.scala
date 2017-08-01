@@ -68,8 +68,12 @@ class NeighborhoodForestActor(
       val searchActor = context.actorOf(NeighborhoodForestSearchActor.props(
           originalSender, initialisedTrees, location, k, distanceThreshold, timeout))
     }
-    case GetNodeStatsRequest(timeout) => {
+    case GetNodeStatsRequest(timeout, doGarbageCollect) => {
       val runtime = Runtime.getRuntime
+
+      if (doGarbageCollect) {
+        runtime.gc()
+      }
 
       val mb = 1024 * 1024
       val freeMemoryMB = runtime.freeMemory.toDouble / mb;
