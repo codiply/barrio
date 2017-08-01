@@ -48,8 +48,10 @@ class NeighborhoodForestActor(
 
   val trees = (1 to config.treesPerNode).map(i => {
     val name = "tree-" + i
-    context.actorOf(NeighborhoodTreeActor.props(name, points, config, random.createNew(), 0, statsActor), name)
+    context.actorOf(NeighborhoodTreeActor.props(name, config, random.createNew(), 0, statsActor), name)
   }).toList
+
+  trees.foreach { _ ! InitialiseTree(points) }
 
   var initialisedTreesCount = 0
   var initialisedTrees: List[ActorRef] = Nil
