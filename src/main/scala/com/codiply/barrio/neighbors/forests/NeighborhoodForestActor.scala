@@ -84,7 +84,7 @@ class NeighborhoodForestActor(
 
       val originalSender = sender
 
-      treeStatsResponse.map{ _.treeStats } onSuccess { case treeStats: Map[String, TreeStats] =>
+      treeStatsResponse onSuccess { case GetNeighborhoodTreeStatsResponse(treeStats) =>
         originalSender ! GetNodeStatsResponse(name, NodeStats(
             memory = MemoryStats(
                 freeMemoryMB = freeMemoryMB,
