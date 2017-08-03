@@ -19,16 +19,16 @@ object NeighborhoodTreeActor {
       rootTreeName: String,
       config: NeighborhoodConfig,
       random: RandomProvider,
-      thisRootDepth: Int,
+      treeStartingDepth: Int,
       statsActor: ActorRef): Props =
-    Props(new NeighborhoodTreeActor(rootTreeName, config, random, thisRootDepth, statsActor))
+    Props(new NeighborhoodTreeActor(rootTreeName, config, random, treeStartingDepth, statsActor))
 }
 
 class NeighborhoodTreeActor(
     rootTreeName: String,
     config: NeighborhoodConfig,
     random: RandomProvider,
-    thisRootDepth: Int,
+    treeStartingDepth: Int,
     statsActor: ActorRef) extends Actor with ActorLogging {
   import com.codiply.barrio.geometry.EasyDistance
   import com.codiply.barrio.geometry.PartitioningPlane
@@ -59,7 +59,7 @@ class NeighborhoodTreeActor(
             val (pointsLeft, pointsRight) = points.partition { (p: Point) => isCloserToLeft(p.location) }
 
             def createChildActor() =
-              context.actorOf(props(rootTreeName, config, random.createNew(), thisRootDepth + 1, statsActor))
+              context.actorOf(props(rootTreeName, config, random.createNew(), treeStartingDepth + 1, statsActor))
 
             val childLeftActorRef = createChildActor()
             childLeftActorRef ! InitialiseTree(pointsLeft)
@@ -135,6 +135,6 @@ class NeighborhoodTreeActor(
   private def sendStats(points: List[Point]) = {
     statsActor ! NeighborhoodTreeLeafStats(
         treeName = rootTreeName,
-        stats = LeafStats(pointCount = points.length, depth = thisRootDepth))
+        stats = LeafStats(pointCount = points.length, depth = treeStartingDepth))
   }
 }
