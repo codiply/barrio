@@ -11,6 +11,7 @@ import akka.actor.Props
 import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.helpers.RandomProvider
+import com.codiply.barrio.neighbors.LeafStats
 import com.codiply.barrio.neighbors.NeighborhoodConfig
 
 object NeighborhoodTreeActor {
@@ -134,7 +135,6 @@ class NeighborhoodTreeActor(
   private def sendStats(points: List[Point]) = {
     statsActor ! NeighborhoodTreeLeafStats(
         treeName = rootTreeName,
-        depth = thisRootDepth,
-        pointCount = points.length)
+        stats = LeafStats(pointCount = points.length, depth = thisRootDepth))
   }
 }
