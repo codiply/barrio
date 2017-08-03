@@ -45,7 +45,7 @@ class NeighborhoodForestSearchActor(
 
   val timeoutCancellable = context.system.scheduler.scheduleOnce(timeout, self, DoSendResponse)
 
-  val prioritisedSubTrees = PriorityQueue[CandidateSubTree]()(Ordering[Double].on[CandidateSubTree](-_.minDistance.value))
+  var prioritisedSubTrees = PriorityQueue[CandidateSubTree]()(Ordering[Double].on[CandidateSubTree](-_.minDistance.value))
   treesToSearch.map { CandidateSubTree(_, EasyDistance(0.0)) }.foreach { prioritisedSubTrees.enqueue(_) }
 
   var nearestNeighborsContainer = NearestNeighborsContainer.empty(k)
@@ -67,7 +67,8 @@ class NeighborhoodForestSearchActor(
 
   private def pruneQueue() = {
     nearestNeighborsContainer.distanceUpperBound.foreach {
-      upperBound => prioritisedSubTrees.filter(tree => tree.minDistance.lessEqualThan(upperBound))
+      upperBound =>
+        prioritisedSubTrees = prioritisedSubTrees.filter(tree => tree.minDistance.lessEqualThan(upperBound))
     }
   }
 
