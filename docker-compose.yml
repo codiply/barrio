@@ -5,11 +5,13 @@ services:
     build: ./docker/images/barrio/
     command: java -jar /barrio/barrio.jar -f /data/grid/input-1.txt -d 7
     environment:
-      - BARRIO_HOSTNAME=node-1
-      - BARRIO_WEB_API_PORT=18001
+      - BARRIO_AKKA_SEED_HOST=node-1:18011
       - BARRIO_AKKA_SYSTEM=barrio
       - BARRIO_AKKA_REMOTING_PORT=18011
-      - BARRIO_AKKA_SEED_HOST=node-1:18011
+      - BARRIO_DEFAULT_REQUEST_TIMEOUT=2000
+      - BARRIO_HOSTNAME=node-1
+      - BARRIO_MAX_REQUEST_TIMEOUT=10000
+      - BARRIO_WEB_API_PORT=18001
     expose:
       - 18001
       - 18011
@@ -23,11 +25,13 @@ services:
     build: ./docker/images/barrio/
     command: java -jar /barrio/barrio.jar -f /data/grid/input-2.txt -d 7
     environment:
-      - BARRIO_HOSTNAME=node-2
-      - BARRIO_WEB_API_PORT=18001
+      - BARRIO_AKKA_SEED_HOST=node-1:18011
       - BARRIO_AKKA_SYSTEM=barrio
       - BARRIO_AKKA_REMOTING_PORT=18011
-      - BARRIO_AKKA_SEED_HOST=node-1:18011
+      - BARRIO_DEFAULT_REQUEST_TIMEOUT=2000
+      - BARRIO_HOSTNAME=node-2
+      - BARRIO_MAX_REQUEST_TIMEOUT=10000
+      - BARRIO_WEB_API_PORT=18001
     expose:
       - 18001
       - 18011
@@ -41,11 +45,13 @@ services:
     build: ./docker/images/barrio/
     command: java -jar /barrio/barrio.jar -f /data/grid/input-3.txt -d 7
     environment:
-      - BARRIO_HOSTNAME=node-3
-      - BARRIO_WEB_API_PORT=18001
+      - BARRIO_AKKA_SEED_HOST=node-1:18011
       - BARRIO_AKKA_SYSTEM=barrio
       - BARRIO_AKKA_REMOTING_PORT=18011
-      - BARRIO_AKKA_SEED_HOST=node-1:18011
+      - BARRIO_DEFAULT_REQUEST_TIMEOUT=2000
+      - BARRIO_HOSTNAME=node-3
+      - BARRIO_MAX_REQUEST_TIMEOUT=10000
+      - BARRIO_WEB_API_PORT=18001
     expose:
       - 18001
       - 18011
@@ -59,11 +65,13 @@ services:
     build: ./docker/images/barrio/
     command: java -jar /barrio/barrio.jar -f /data/grid/input-4.txt -d 7
     environment:
-      - BARRIO_HOSTNAME=node-4
-      - BARRIO_WEB_API_PORT=18001
+      - BARRIO_AKKA_SEED_HOST=node-1:18011
       - BARRIO_AKKA_SYSTEM=barrio
       - BARRIO_AKKA_REMOTING_PORT=18011
-      - BARRIO_AKKA_SEED_HOST=node-1:18011
+      - BARRIO_DEFAULT_REQUEST_TIMEOUT=2000
+      - BARRIO_HOSTNAME=node-4
+      - BARRIO_MAX_REQUEST_TIMEOUT=10000
+      - BARRIO_WEB_API_PORT=18001
     expose:
       - 18001
       - 18011

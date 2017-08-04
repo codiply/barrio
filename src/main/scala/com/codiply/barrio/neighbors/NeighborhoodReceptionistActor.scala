@@ -13,6 +13,7 @@ import akka.actor.Props
 
 import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
+import com.codiply.barrio.helpers.Constants
 
 object NeighborhoodReceptionistActor {
   def props(nodeActorRouter: ActorRef): Props =
@@ -37,17 +38,18 @@ class NeighborhoodReceptionistActor(
   val receive: Receive = receiveRequests orElse receiveClusterEvents
 
   def receiveRequests: Receive = {
-    case request @ GetNeighborsRequest(location, k, distanceThreshold, aggregatorTimeout) => {
+    case request @ GetNeighborsRequest(location, k, distanceThreshold, timeoutMilliseconds) => {
       val originalSender = sender
       val aggregator = context.actorOf(NeighborAggregatorActor.props(
-          k, originalSender, nodeCount, 2 * aggregatorTimeout))
-      nodeActorRouter.tell(request, aggregator)
+          k, originalSender, nodeCount, timeoutMilliseconds.milliseconds))
+      val newRequest = request.copy(timeoutMilliseconds = Constants.slightlyReduceTimeout(request.timeoutMilliseconds))
+      nodeActorRouter.tell(newRequest, aggregator)
     }
-    case request @ GetClusterStatsRequest(aggregatorTimeout, doGarbageCollect) => {
+    case request @ GetClusterStatsRequest(timeoutMilliseconds, doGarbageCollect) => {
       val originalSender = sender
       val aggregator = context.actorOf(NodeStatsAggregatorActor.props(
-          originalSender, nodeCount, 2 * aggregatorTimeout))
-      nodeActorRouter.tell(GetNodeStatsRequest(aggregatorTimeout, doGarbageCollect), aggregator)
+          originalSender, nodeCount, timeoutMilliseconds.milliseconds))
+      nodeActorRouter.tell(GetNodeStatsRequest(Constants.slightlyReduceTimeout(timeoutMilliseconds), doGarbageCollect), aggregator)
     }
   }
 
