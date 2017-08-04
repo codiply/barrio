@@ -6,6 +6,10 @@ import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.geometry.RealDistance
 
 trait NeighborProvider {
-  def getNeighbors(location: List[Double], k: Int, distanceThreshold: RealDistance): Future[List[Point]]
+  def getNeighbors(
+      location: List[Double],
+      k: Int,
+      distanceThreshold: RealDistance,
+      timeoutMilliseconds: Option[Int]): Future[List[Point]]
   def getStats(doGarbageCollect: Boolean): Future[ClusterStats]
 }

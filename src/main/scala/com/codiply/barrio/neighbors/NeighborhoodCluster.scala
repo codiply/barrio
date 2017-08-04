@@ -10,6 +10,7 @@ import akka.pattern.ask
 import akka.routing.BroadcastGroup
 import akka.util.Timeout
 
+import com.codiply.barrio.helpers.Constants
 import com.codiply.barrio.helpers.RandomProvider
 import com.codiply.barrio.geometry.EasyDistance
 import com.codiply.barrio.geometry.Metric
@@ -21,8 +22,11 @@ class NeighborhoodCluster (
     pointsLoader: () => Iterable[Point],
     config: NeighborhoodConfig,
     random: RandomProvider) extends NeighborProvider {
-  import ActorProtocol._
-  import forests.NeighborhoodForestActor
+  import ActorProtocol.GetClusterStatsRequest
+  import ActorProtocol.GetClusterStatsResponse
+  import ActorProtocol.GetNeighborsRequest
+  import ActorProtocol.GetNeighborsResponse
+  import com.codiply.barrio.neighbors.forests.NeighborhoodForestActor
 
   val points = pointsLoader().toList
   val metric = config.metric
@@ -45,15 +49,19 @@ class NeighborhoodCluster (
   val receptionistActor = actorSystem.actorOf(
       NeighborhoodReceptionistActor.props(nodeActorRouter), "receptionist")
 
-  def getNeighbors(location: List[Double], k: Int, distanceThreshold: RealDistance): Future[List[Point]] = {
+  def getNeighbors(
+      location: List[Double],
+      k: Int,
+      distanceThreshold: RealDistance,
+      timeoutMilliseconds: Option[Int]): Future[List[Point]] = {
     if (location.length == config.dimensions) {
-      val timeout: FiniteDuration = 5.seconds
-      implicit val askTimeout = Timeout(2 * timeout)
+      val effectiveTimeoutMilliseconds = config.getEffectiveTimeoutMilliseconds(timeoutMilliseconds)
+      implicit val askTimeout = Timeout((Constants.slightlyIncreaseTimeout(effectiveTimeoutMilliseconds)).milliseconds)
 
       metric.toEasyDistance(distanceThreshold) match {
         case Some(easyDistanceThreshold) =>
           (receptionistActor ? GetNeighborsRequest(
-            location, k , easyDistanceThreshold, timeout)).mapTo[GetNeighborsResponse].map(_.neighbors)
+            location, k , easyDistanceThreshold, effectiveTimeoutMilliseconds)).mapTo[GetNeighborsResponse].map(_.neighbors)
         case None => Future(List[Point]())
       }
     } else {
@@ -62,9 +70,9 @@ class NeighborhoodCluster (
   }
 
   def getStats(doGarbageCollect: Boolean): Future[ClusterStats] = {
-    val timeout: FiniteDuration = 3.minutes
-    implicit val askTimeout = Timeout(2 * timeout)
-    val response = (receptionistActor ? GetClusterStatsRequest(timeout, doGarbageCollect))
+    val timeoutMilliseconds = Constants.statsTimeoutMilliseconds
+    implicit val askTimeout = Timeout(Constants.slightlyIncreaseTimeout(timeoutMilliseconds).milliseconds)
+    val response = (receptionistActor ? GetClusterStatsRequest(timeoutMilliseconds, doGarbageCollect))
     response.mapTo[GetClusterStatsResponse].map(_.stats)
   }
 }

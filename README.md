@@ -41,6 +41,16 @@ The `distanceThreshold` defines an area around the given location that will be s
 Note that if this threshold and the number of neighbors `k` are too big, the search might time out, 
 returning the best results up to this point without any guarantees.
 
+If you prefer to get any results found in a limited amount of time, you can set the timeout (in milliseconds) in the request
+
+    {
+      "location": [0.0, 0.0, 0.0],
+      "k": 3,
+      "distanceThreshold": 10.0,
+      "timeout": 1000
+    }
+    
+
 ### Run cluster in docker
 
 First package the whole project into one single `.jar`

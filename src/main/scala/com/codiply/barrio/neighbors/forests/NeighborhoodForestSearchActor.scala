@@ -19,8 +19,8 @@ object NeighborhoodForestSearchActor {
       location: List[Double],
       k: Int,
       distanceThreshold: EasyDistance,
-      timeout: FiniteDuration): Props = Props(new NeighborhoodForestSearchActor(
-          responseRecipient, treesToSearch, location, k, distanceThreshold, timeout))
+      timeoutMilliseconds: Int): Props = Props(new NeighborhoodForestSearchActor(
+          responseRecipient, treesToSearch, location, k, distanceThreshold, timeoutMilliseconds))
 }
 
 object NeighborhoodForestSearchActorProtocol {
@@ -37,13 +37,13 @@ class NeighborhoodForestSearchActor(
       location: List[Double],
       k: Int,
       distanceThreshold: EasyDistance,
-      timeout: FiniteDuration) extends Actor with ActorLogging {
+      timeoutMilliseconds: Int) extends Actor with ActorLogging {
   import context.dispatcher
   import com.codiply.barrio.neighbors.ActorProtocol._
   import NeighborhoodForestSearchActorProtocol._
   import scala.math.Ordering.Implicits._
 
-  val timeoutCancellable = context.system.scheduler.scheduleOnce(timeout, self, DoSendResponse)
+  val timeoutCancellable = context.system.scheduler.scheduleOnce(timeoutMilliseconds.milliseconds, self, DoSendResponse)
 
   var prioritisedSubTrees = PriorityQueue[CandidateSubTree]()(Ordering[Double].on[CandidateSubTree](-_.minDistance.value))
   treesToSearch.map { CandidateSubTree(_, EasyDistance(0.0)) }.foreach { prioritisedSubTrees.enqueue(_) }

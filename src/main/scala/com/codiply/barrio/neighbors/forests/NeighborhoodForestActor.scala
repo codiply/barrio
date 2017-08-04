@@ -13,6 +13,7 @@ import akka.util.Timeout
 import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.geometry.RealDistance
+import com.codiply.barrio.helpers.Constants
 import com.codiply.barrio.helpers.RandomProvider
 import com.codiply.barrio.neighbors.ActorProtocol._
 import com.codiply.barrio.neighbors.NeighborhoodConfig
@@ -39,9 +40,6 @@ class NeighborhoodForestActor(
   import com.codiply.barrio.neighbors.TreeStats
   import com.codiply.barrio.neighbors.NodeStats
 
-  val timeout: FiniteDuration = 5.seconds
-  implicit val askTimeout = Timeout(2 * timeout)
-
   import context.dispatcher
 
   val statsActor = context.actorOf(NeihborhoodForestStatsActor.props(), "stats-actor")
@@ -63,12 +61,15 @@ class NeighborhoodForestActor(
         initialisedTrees = sender +: initialisedTrees
       }
     }
-    case request @ GetNeighborsRequest(location, k, distanceThreshold, timeout) => {
+    case request @ GetNeighborsRequest(location, k, distanceThreshold, timeoutMilliseconds) => {
       val originalSender = sender
+      val effectiveTimeoutMilliseconds = config.getEffectiveTimeoutMilliseconds(Some(timeoutMilliseconds))
       val searchActor = context.actorOf(NeighborhoodForestSearchActor.props(
-          originalSender, initialisedTrees, location, k, distanceThreshold, timeout))
+          originalSender, initialisedTrees, location, k, distanceThreshold, effectiveTimeoutMilliseconds))
     }
-    case GetNodeStatsRequest(timeout, doGarbageCollect) => {
+    case GetNodeStatsRequest(timeoutMilliseconds, doGarbageCollect) => {
+      implicit val askTimeout = Timeout(timeoutMilliseconds.milliseconds)
+
       val runtime = Runtime.getRuntime
 
       if (doGarbageCollect) {

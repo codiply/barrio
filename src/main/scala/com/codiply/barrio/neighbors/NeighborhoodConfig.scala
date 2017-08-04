@@ -9,25 +9,33 @@ import com.codiply.barrio.helpers.ConfigKey
 object NeighborhoodConfig {
   object Defaults {
     val maxRequestTimeoutMilliseconds = 60000
+    val minRequestTimeoutMilliseconds = 10
     val defaultRequestTimeoutMilliseconds = 10000
   }
 
-  def apply(argsConfig: ArgsConfig, config: Config): NeighborhoodConfig =
+  def apply(argsConfig: ArgsConfig, config: Config): NeighborhoodConfig = {
+    val maxRequestTimeoutMilliseconds =
+      Math.max(Defaults.minRequestTimeoutMilliseconds,
+          getPositiveInt(config, ConfigKey.maxRequestTimeoutMilliseconds, Defaults.maxRequestTimeoutMilliseconds))
+    val defaultRequestTimeoutMilliseconds =
+      Math.min(maxRequestTimeoutMilliseconds,
+          getPositiveInt(config, ConfigKey.defaultRequestTimeoutMilliseconds, Defaults.defaultRequestTimeoutMilliseconds))
     NeighborhoodConfig(
-        defaultRequestTimeoutMilliseconds =
-          getInt(config, ConfigKey.maxRequestTimeoutMilliseconds, Defaults.defaultRequestTimeoutMilliseconds),
+        defaultRequestTimeoutMilliseconds = defaultRequestTimeoutMilliseconds,
         dimensions = argsConfig.dimensions,
         maxPointsPerLeaf = argsConfig.maxPointsPerLeaf,
-        maxRequestTimeoutMilliseconds =
-          getInt(config, ConfigKey.maxRequestTimeoutMilliseconds, Defaults.maxRequestTimeoutMilliseconds),
+        maxRequestTimeoutMilliseconds = maxRequestTimeoutMilliseconds,
+        minRequestTimeoutMilliseconds = Defaults.minRequestTimeoutMilliseconds,
         // TODO: set via command line argument
         metric = Metric.euclidean,
         nodeName = config.getString(ConfigKey.hostname),
         treesPerNode = argsConfig.treesPerNode)
+  }
 
-  def getInt(config: Config, key: String, default: Int): Int = {
+  private def getPositiveInt(config: Config, key: String, default: Int): Int = {
     try {
-      config.getInt(key)
+      val value = config.getInt(key)
+      if (value > 0) value else default
     } catch {
       case e: Exception => default
     }
@@ -39,6 +47,15 @@ case class NeighborhoodConfig(
     dimensions: Int,
     maxPointsPerLeaf: Int,
     maxRequestTimeoutMilliseconds: Int,
+    minRequestTimeoutMilliseconds: Int,
     metric: Metric,
     nodeName: String,
-    treesPerNode: Int)
+    treesPerNode: Int) {
+  def getEffectiveTimeoutMilliseconds(requestTimeoutMilliseconds: Option[Int]): Int = {
+    requestTimeoutMilliseconds match {
+      case None => defaultRequestTimeoutMilliseconds
+      case Some(timeout) =>
+        Math.max(minRequestTimeoutMilliseconds, Math.min(timeout, maxRequestTimeoutMilliseconds))
+    }
+  }
+}
