@@ -50,13 +50,22 @@ class NeighborhoodForestSearchActor(
 
   var nearestNeighborsContainer = NearestNeighborsContainer.empty(k)
 
+  var currentDistanceThreshold = distanceThreshold
+
   // Initiate the search
   sendNextSearchTreeRequest()
 
   def receive: Receive = {
     case request: NeighborsSearchLeafResponse => {
       nearestNeighborsContainer = nearestNeighborsContainer.merge(request.container)
-      pruneQueue()
+
+      nearestNeighborsContainer.distanceUpperBound.foreach {
+        upperBound => {
+          pruneQueue(upperBound)
+          updateDistanceThreshold(upperBound)
+        }
+      }
+
       sendNextSearchTreeRequest()
     }
     case EnqueueCandidate(candidate) => {
@@ -65,24 +74,24 @@ class NeighborhoodForestSearchActor(
     case DoSendResponse => sendResponse()
   }
 
-  private def pruneQueue() = {
-    nearestNeighborsContainer.distanceUpperBound.foreach {
-      upperBound =>
-        prioritisedSubTrees = prioritisedSubTrees.filter(tree => tree.minDistance.lessEqualThan(upperBound))
-    }
-  }
+  private def pruneQueue(distanceUpperBound: EasyDistance): Unit =
+    prioritisedSubTrees = prioritisedSubTrees.filter(tree =>
+      tree.minDistance.lessEqualThan(distanceUpperBound))
 
-  private def sendNextSearchTreeRequest() = {
+  private def updateDistanceThreshold(distanceUpperBound: EasyDistance): Unit =
+    currentDistanceThreshold = EasyDistance.min(currentDistanceThreshold, distanceUpperBound)
+
+  private def sendNextSearchTreeRequest(): Unit = {
     if (prioritisedSubTrees.isEmpty) {
       sendResponse()
     }
     else {
       val subTree = prioritisedSubTrees.dequeue()
-      subTree.root ! NeighborsSearchTreeRequest(location, k, distanceThreshold)
+      subTree.root ! NeighborsSearchTreeRequest(location, k, currentDistanceThreshold)
     }
   }
 
-  private def sendResponse() = {
+  private def sendResponse(): Unit = {
     timeoutCancellable.cancel()
     responseRecipient ! nearestNeighborsContainer
     context.stop(self)
