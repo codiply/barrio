@@ -24,10 +24,10 @@ class AggregatorActorSpec extends TestKit(ActorSystem("AggregatorActorSpec"))
     val initialValue = "i"
     val folder = (aggregate: String, message: String) => aggregate + " then " + message
     val mapper = (aggregate: String) => aggregate.toUpperCase()
-    val timeoutMillis = 300
-    val timeout = timeoutMillis.millisecond
-    val justBeforeTimeout = (timeoutMillis * 0.9).millisecond
-    val justAfterTimeout = (timeoutMillis * 1.1).millisecond
+    val timeoutMilliseconds = 300
+    val timeout = timeoutMilliseconds.millisecond
+    val justBeforeTimeout = (timeoutMilliseconds * 0.9).millisecond
+    val justAfterTimeout = (timeoutMilliseconds * 1.1).millisecond
 
     "send no aggregate before the timeout when it receives no responses" in {
       val testProbe = TestProbe()
