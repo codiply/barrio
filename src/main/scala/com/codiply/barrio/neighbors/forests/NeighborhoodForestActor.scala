@@ -37,6 +37,7 @@ class NeighborhoodForestActor(
     random: RandomProvider) extends Actor with ActorLogging {
   import ActorProtocol._
   import com.codiply.barrio.neighbors.MemoryStats
+  import com.codiply.barrio.neighbors.NearestNeighborsContainer
   import com.codiply.barrio.neighbors.TreeStats
   import com.codiply.barrio.neighbors.NodeStats
 
@@ -62,10 +63,14 @@ class NeighborhoodForestActor(
       }
     }
     case request @ GetNeighborsRequest(location, k, distanceThreshold, timeoutMilliseconds) => {
-      val originalSender = sender
-      val effectiveTimeoutMilliseconds = config.getEffectiveTimeoutMilliseconds(Some(timeoutMilliseconds))
-      val searchActor = context.actorOf(NeighborhoodForestSearchActor.props(
-          originalSender, initialisedTrees, location, k, distanceThreshold, effectiveTimeoutMilliseconds))
+      if (location.length == config.dimensions) {
+        val originalSender = sender
+        val effectiveTimeoutMilliseconds = config.getEffectiveTimeoutMilliseconds(Some(timeoutMilliseconds))
+        val searchActor = context.actorOf(NeighborhoodForestSearchActor.props(
+            originalSender, initialisedTrees, location, k, distanceThreshold, effectiveTimeoutMilliseconds))
+      } else {
+        sender ! NearestNeighborsContainer.empty(k)
+      }
     }
     case GetNodeStatsRequest(timeoutMilliseconds, doGarbageCollect) => {
       implicit val askTimeout = Timeout(timeoutMilliseconds.milliseconds)
@@ -87,6 +92,7 @@ class NeighborhoodForestActor(
 
       treeStatsResponse onSuccess { case GetNeighborhoodTreeStatsResponse(treeStats) =>
         originalSender ! GetNodeStatsResponse(name, NodeStats(
+            dimensions = config.dimensions,
             memory = MemoryStats(
                 freeMemoryMB = freeMemoryMB,
                 totalMemoryMB = totalMemoryMB,
