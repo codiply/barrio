@@ -10,6 +10,6 @@ trait NeighborProvider {
       location: List[Double],
       k: Int,
       distanceThreshold: RealDistance,
-      timeoutMilliseconds: Option[Int]): Future[List[Point]]
+      timeoutMilliseconds: Option[Int]): Future[Vector[Point]]
   def getStats(doGarbageCollect: Boolean): Future[ClusterStats]
 }

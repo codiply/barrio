@@ -79,4 +79,6 @@ final case class NearestNeighborsContainer(
     val newDistanceUpperBound = getDistanceUpperBound(newOrderedDistinctNeighbors, newKDesired)
     NearestNeighborsContainer(newOrderedDistinctNeighbors, newKDesired, newDistanceUpperBound)
   }
+
+  def count(): Int = orderedDistinctNeighbors.length
 }
