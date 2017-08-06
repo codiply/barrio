@@ -43,6 +43,7 @@ final case class TreeStats(
   depth: LongQuantityStats)
 
 final case class NodeStats(
+  version: String,
   dimensions: Int,
   memory: MemoryStats,
   trees: Map[String, TreeStats])

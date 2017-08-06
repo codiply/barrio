@@ -40,6 +40,7 @@ object JsonSupport {
 
     def mapNodeStats(stats: NodeStats): NodeStatsJson =
       NodeStatsJson(
+        version = stats.version,
         dimensions = stats.dimensions,
         memory = mapMemoryStats(stats.memory),
         trees = stats.trees.mapValues(mapTreeStats))
@@ -67,6 +68,7 @@ object JsonSupport {
     depth: LongQuantityStatsJson)
 
   final case class NodeStatsJson(
+    version: String,
     dimensions: Int,
     memory: MemoryStatsJson,
     trees: Map[String, TreeStatsJson])
@@ -83,6 +85,6 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val memoryStatsFormat = jsonFormat4(MemoryStatsJson)
   implicit val longQuantityStatsFormat = jsonFormat4(LongQuantityStatsJson)
   implicit val treeStatsFormat = jsonFormat4(TreeStatsJson)
-  implicit val nodeStatsFormat = jsonFormat3(NodeStatsJson)
+  implicit val nodeStatsFormat = jsonFormat4(NodeStatsJson)
   implicit val clusterStatsFormat = jsonFormat1(ClusterStatsJson)
 }

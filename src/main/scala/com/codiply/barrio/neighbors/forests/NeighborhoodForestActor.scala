@@ -92,6 +92,7 @@ class NeighborhoodForestActor(
 
       treeStatsResponse onSuccess { case GetNeighborhoodTreeStatsResponse(treeStats) =>
         originalSender ! GetNodeStatsResponse(name, NodeStats(
+            version = config.version,
             dimensions = config.dimensions,
             memory = MemoryStats(
                 freeMemoryMB = freeMemoryMB,
