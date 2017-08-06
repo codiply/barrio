@@ -28,31 +28,49 @@ class NearestNeighborsContainerSpec extends FlatSpec {
 
   "NearestNeighborsContainer.apply()" should "returns an empty container when called with an empty list" in {
     val kDesired = 2
-    assert(NearestNeighborsContainer(Nil, kDesired, distanceFunc) == k2Empty)
+    val expectedCount = 0
+
+    val actual = NearestNeighborsContainer(Nil, kDesired, distanceFunc)
+
+    assert(actual == k2Empty)
+
+    assert(actual.count() == expectedCount, "test count")
   }
   it should "keep the nearest distinct neighbors (case 1)" in {
     val kDesired = 4
+    val expectedCount = kDesired
+
     val points = List(point3, point5, point1, point4, point1, point4, point3, point2, point3)
     val actual = NearestNeighborsContainer(points, kDesired, distanceFunc)
     val expected = NearestNeighborsContainer(
         Vector(neighbor1, neighbor2, neighbor3, neighbor4), kDesired, Some(neighbor4.distance))
+
     assert(actual == expected)
+    assert(actual.count() == expectedCount, "test count")
   }
   it should "keep the nearest distinct neighbors (case 2)" in {
     val kDesired = 4
+    val expectedCount = kDesired
+
     val points = List(point3, point1, point4, point3, point1, point2)
     val actual = NearestNeighborsContainer(points, kDesired, distanceFunc)
     val expected = NearestNeighborsContainer(
         Vector(neighbor1, neighbor2, neighbor3, neighbor4), kDesired, Some(neighbor4.distance))
+
     assert(actual == expected)
+    assert(actual.count() == expectedCount, "test count")
   }
   it should "keep the nearest distinct neighbors (case 3)" in {
     val kDesired = 4
+    val expectedCount = 3
+
     val points = List(point3, point1, point2, point3, point1, point2)
     val actual = NearestNeighborsContainer(points, kDesired, distanceFunc)
     val expected = NearestNeighborsContainer(
         Vector(neighbor1, neighbor2, neighbor3), kDesired, None)
+
     assert(actual == expected)
+    assert(actual.count() == expectedCount, "test count")
   }
 
   "NearestNeighborsContainer.merge()" should "return an empty container when merging two empty containers" in {
@@ -72,32 +90,43 @@ class NearestNeighborsContainerSpec extends FlatSpec {
     val kDesired = 3
     val container1 = NearestNeighborsContainer(List(point2, point3), kDesired, distanceFunc)
     val container2 = NearestNeighborsContainer(List(point1, point2), kDesired, distanceFunc)
+
     val merged1 = container1.merge(container2)
     val merged2 = container2.merge(container1)
+
     val expected = NearestNeighborsContainer(
         Vector(neighbor1, neighbor2, neighbor3), kDesired, Some(neighbor3.distance))
+
     assert(merged1 == expected, "merged1")
     assert(merged2 == expected, "merged2")
   }
   it should "remove duplicates and set the distanceUpperBound correctly (case 2)" in {
     val kDesired = 3
+
     val container1 = NearestNeighborsContainer(List(point2, point3, point4), kDesired, distanceFunc)
     val container2 = NearestNeighborsContainer(List(point1, point2), kDesired, distanceFunc)
+
     val merged1 = container1.merge(container2)
     val merged2 = container2.merge(container1)
+
     val expected = NearestNeighborsContainer(
         Vector(neighbor1, neighbor2, neighbor3), 3, Some(neighbor3.distance))
+
     assert(merged1 == expected, "merged1")
     assert(merged2 == expected, "merged2")
   }
   it should "remove duplicates and set the distanceUpperBound correctly (case 3)" in {
     val kDesired = 3
+
     val container1 = NearestNeighborsContainer(List(point2, point3, point4), kDesired, distanceFunc)
     val container2 = NearestNeighborsContainer(List(point1, point2, point5), kDesired, distanceFunc)
+
     val merged1 = container1.merge(container2)
     val merged2 = container2.merge(container1)
+
     val expected = NearestNeighborsContainer(
         Vector(neighbor1, neighbor2, neighbor3), kDesired, Some(neighbor3.distance))
+
     assert(merged1 == expected, "merged1")
     assert(merged2 == expected, "merged2")
   }
