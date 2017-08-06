@@ -11,5 +11,6 @@ trait NeighborProvider {
       k: Int,
       distanceThreshold: RealDistance,
       timeoutMilliseconds: Option[Int]): Future[Vector[Point]]
+  def getHealth(): Future[ClusterHealth]
   def getStats(doGarbageCollect: Boolean): Future[ClusterStats]
 }

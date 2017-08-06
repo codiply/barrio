@@ -6,6 +6,7 @@ import spray.json._
 
 object JsonSupport {
   import com.codiply.barrio.helpers.LongQuantityStats
+  import com.codiply.barrio.neighbors.ClusterHealth
   import com.codiply.barrio.neighbors.ClusterStats
   import com.codiply.barrio.neighbors.MemoryStats
   import com.codiply.barrio.neighbors.NodeStats
@@ -45,8 +46,11 @@ object JsonSupport {
         memory = mapMemoryStats(stats.memory),
         trees = stats.trees.mapValues(mapTreeStats))
 
-    def mapClusterStats(doGarbageCollect: Boolean, stats: ClusterStats): ClusterStatsJson =
+    def mapClusterStats(stats: ClusterStats): ClusterStatsJson =
       ClusterStatsJson(nodes = stats.nodes.mapValues(mapNodeStats))
+
+    def mapClusterHealth(health: ClusterHealth): ClusterHealthJson =
+      ClusterHealthJson(errors = health.errors)
   }
 
   final case class MemoryStatsJson(
@@ -74,6 +78,8 @@ object JsonSupport {
     trees: Map[String, TreeStatsJson])
 
   final case class ClusterStatsJson(nodes: Map[String, NodeStatsJson])
+
+  final case class ClusterHealthJson(errors: List[String])
 }
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
@@ -87,4 +93,5 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val treeStatsFormat = jsonFormat4(TreeStatsJson)
   implicit val nodeStatsFormat = jsonFormat4(NodeStatsJson)
   implicit val clusterStatsFormat = jsonFormat1(ClusterStatsJson)
+  implicit val clusterHealthFormat = jsonFormat1(ClusterHealthJson)
 }

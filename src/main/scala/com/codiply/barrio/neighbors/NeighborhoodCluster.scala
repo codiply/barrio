@@ -69,6 +69,10 @@ class NeighborhoodCluster (
     }
   }
 
+  def getHealth(): Future[ClusterHealth] = {
+    getStats(doGarbageCollect = false).map(ClusterHealthAnalyzer.analyse(_))
+  }
+
   def getStats(doGarbageCollect: Boolean): Future[ClusterStats] = {
     val timeoutMilliseconds = Constants.statsTimeoutMilliseconds
     implicit val askTimeout = Timeout(Constants.slightlyIncreaseTimeout(timeoutMilliseconds).milliseconds)

@@ -6,8 +6,9 @@ import akka.http.scaladsl.server.Route
 import spray.json._
 
 import com.codiply.barrio.geometry.RealDistance
-import com.codiply.barrio.neighbors.NeighborProvider
+import com.codiply.barrio.neighbors.ClusterHealth
 import com.codiply.barrio.neighbors.ClusterStats
+import com.codiply.barrio.neighbors.NeighborProvider
 import com.codiply.barrio.neighbors.NodeStats
 import com.codiply.barrio.web.JsonSupport._
 
@@ -18,13 +19,11 @@ class WebServer(neighborhood: NeighborProvider) extends HttpApp with JsonSupport
         complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Hello from Barrio!</h1>"))
       }
     } ~
-    path("stats") {
+    path("health") {
       get {
-        parameters('gc.as[Boolean] ? false) { (doGarbageCollect) =>
-          onSuccess(neighborhood.getStats(doGarbageCollect)) { case stats: ClusterStats =>
-            val response = Mapping.mapClusterStats(doGarbageCollect, stats).toJson
-            complete(HttpEntity(ContentTypes.`application/json`, response.toString))
-          }
+        onSuccess(neighborhood.getHealth()) { case health: ClusterHealth =>
+          val response = Mapping.mapClusterHealth(health).toJson
+          complete(HttpEntity(ContentTypes.`application/json`, response.toString))
         }
       }
     } ~
@@ -39,6 +38,16 @@ class WebServer(neighborhood: NeighborProvider) extends HttpApp with JsonSupport
                   neighbors = neighbors.map(p => NeighborJson(p.id, p.location))).toJson
               complete(HttpEntity(ContentTypes.`application/json`, response.toString))
             }
+          }
+        }
+      }
+    } ~
+    path("stats") {
+      get {
+        parameters('gc.as[Boolean] ? false) { (doGarbageCollect) =>
+          onSuccess(neighborhood.getStats(doGarbageCollect)) { case stats: ClusterStats =>
+            val response = Mapping.mapClusterStats(stats).toJson
+            complete(HttpEntity(ContentTypes.`application/json`, response.toString))
           }
         }
       }
