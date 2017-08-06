@@ -5,6 +5,7 @@ import com.typesafe.config.Config
 import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.helpers.ArgsConfig
 import com.codiply.barrio.helpers.ConfigKey
+import com.codiply.barrio.helpers.VersionHelper
 
 object NeighborhoodConfig {
   object Defaults {
@@ -29,7 +30,8 @@ object NeighborhoodConfig {
         // TODO: set via command line argument
         metric = Metric.euclidean,
         nodeName = config.getString(ConfigKey.hostname),
-        treesPerNode = argsConfig.treesPerNode)
+        treesPerNode = argsConfig.treesPerNode,
+        version = VersionHelper.version)
   }
 
   private def getPositiveInt(config: Config, key: String, default: Int): Int = {
@@ -50,7 +52,8 @@ case class NeighborhoodConfig(
     minRequestTimeoutMilliseconds: Int,
     metric: Metric,
     nodeName: String,
-    treesPerNode: Int) {
+    treesPerNode: Int,
+    version: String) {
   def getEffectiveTimeoutMilliseconds(requestTimeoutMilliseconds: Option[Int]): Int = {
     requestTimeoutMilliseconds match {
       case None => defaultRequestTimeoutMilliseconds
