@@ -2,6 +2,7 @@ package com.codiply.barrio.tests.geometry
 
 import scala.math.sqrt
 
+import org.scalactic.Tolerance._
 import org.scalatest.FlatSpec
 
 import com.codiply.barrio.geometry.EasyDistance
@@ -12,6 +13,8 @@ import com.codiply.barrio.geometry.Metric
 
 class MetricEuclideanSpec extends FlatSpec {
   private def pretty(c: Coordinates): String = c.mkString("(", ",", ")")
+
+  val eps = 1e-15
 
   val metric = Metric.euclidean
 
@@ -84,19 +87,57 @@ class MetricEuclideanSpec extends FlatSpec {
   "toEasyDistance" should "return the expected result" in {
     List(0.0, 1.0, 2.0).foreach(real => {
       val expected = Some(EasyDistance(real * real))
-      assert(metric.toEasyDistance(RealDistance(real)) == expected, "for real distance " + real)
+      val actual = metric.toEasyDistance(RealDistance(real))
+      assert(actual == expected, "for real distance " + real)
     })
   }
 
   "toRealDistance" should "return the expected result for non-negative easy distance" in {
     List(0.0, 1.0, 2.0).foreach(easy => {
       val expected = Some(RealDistance(sqrt(easy)))
-      assert(metric.toRealDistance(EasyDistance(easy)) == expected, "for easy distance " + easy)
+      val actual = metric.toRealDistance(EasyDistance(easy))
+      assert(actual == expected, "for easy distance " + easy)
     })
   }
   it should "return None when real distance is negative" in {
     List(-1.0, -2.0).foreach(easy => {
       assert(metric.toRealDistance(EasyDistance(easy)) == None, "for easy distance " + easy)
     })
+  }
+
+  "toRealDistance followed by toEasyDistance" should "return the original easy distance" in {
+    (0.0 to 10.0 by 1.0).foreach(easy => {
+      val original = EasyDistance(easy)
+      val actual = for {
+        realDistance <- metric.toRealDistance(original)
+        easyDistance <- metric.toEasyDistance(realDistance)
+      } yield easyDistance
+      assert(actual.isDefined, "check is Some for easy distance" + easy)
+      assert(actual.get.value === easy +- eps)
+    })
+  }
+
+  "toEasyDistance followed by toRealDistance" should "return the original real distance" in {
+    (0.0 to 10.0 by 1.0).foreach(real => {
+      val original = RealDistance(real)
+      val actual = for {
+        easyDistance <- metric.toEasyDistance(original)
+        realDistance <- metric.toRealDistance(easyDistance)
+      } yield realDistance
+      assert(actual.isDefined, "check is Some for real distance" + real)
+      assert(actual.get.value === real +- eps)
+    })
+  }
+
+  "areValidCoordinates" should "return true in all cases" in {
+    val values = List(-1.0, 0.0, 1.0)
+    for {
+      x <- values
+      y <- values
+      z <- values
+      p = List(x, y, z)
+    } {
+      assert(metric.areValidCoordinates(p), "for point " + pretty(p))
+    }
   }
 }
