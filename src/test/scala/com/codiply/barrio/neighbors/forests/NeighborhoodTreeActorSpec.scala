@@ -18,8 +18,9 @@ import com.codiply.barrio.neighbors.forests.NeighborhoodTreeActor
 import com.codiply.barrio.neighbors.forests.ActorProtocol.InitialiseTree
 import com.codiply.barrio.neighbors.forests.ActorProtocol.NeighborhoodTreeLeafStats
 import com.codiply.barrio.neighbors.forests.ActorProtocol.TreeInitialised
+import com.codiply.barrio.test.TestKitConfig
 
-class NeighborhoodTreeActorSpec extends TestKit(ActorSystem("NeighborhoodTreeActorSpec"))
+class NeighborhoodTreeActorSpec extends TestKit(ActorSystem("NeighborhoodTreeActorSpec", TestKitConfig.config))
   with WordSpecLike with Matchers with BeforeAndAfterAll {
 
   override def afterAll {
