@@ -53,7 +53,7 @@ final object Metric {
       val inner = Coordinates.innerProduct(a, b)
       val aSquare = Coordinates.innerProduct(a, a)
       val bSquare = Coordinates.innerProduct(b, b)
-      EasyDistance(1 - (inner * inner) / (aSquare * bSquare))
+      EasyDistance(1 - sign(inner) * (inner * inner) / (aSquare * bSquare))
     }
     Metric(
       name = "cosine",
@@ -64,7 +64,10 @@ final object Metric {
           c2hat <- Coordinates.normalize(plane.centroid2)
           // This is a vector normal to the boundary
           eta = Coordinates.subtract(c1hat, c2hat)
-          val etaSquare = Coordinates.innerProduct(eta, eta)
+          etaSquare <- Coordinates.innerProduct(eta, eta) match {
+            case x if x > 0.0 => Some(x)
+            case _ => None
+          }
         } yield {
           (location: Coordinates) => {
             val alpha = - Coordinates.innerProduct(location, eta) / etaSquare
@@ -75,24 +78,30 @@ final object Metric {
       },
       toEasyDistance = (realDistance: RealDistance) => {
         val real = realDistance.value
-        if (0.0 <= real && real <= 1.0) {
-          Some(EasyDistance(real * (2.0 - real)))
+        if (0.0 <= real && real <= 2.0) {
+          val cosine = 1.0 - real
+          val s = sign(cosine)
+          Some(EasyDistance(1.0 - s * cosine * cosine))
         } else {
           None
         }
       },
       toRealDistance = (easyDistance: EasyDistance) => {
         val easy = easyDistance.value
-        if (0.0 <= easy && easy <= 1.0) {
-          Some(RealDistance(1 - sqrt(1 - easy)))
+        if (0.0 <= easy && easy <= 2.0) {
+          val s = sign(1.0 - easy)
+          val cosine = s * sqrt((1.0 - easy) / s)
+          Some(RealDistance(1 - cosine))
         } else {
           None
         }
       },
-      areValidCoordinates = (location: Coordinates) => !location.exists(_ < 0.0) && location.exists(_ > 0.0)
+      areValidCoordinates = (location: Coordinates) => location.exists(_ != 0.0)
     )
   }
 
   val allMetrics = List(euclidean, cosine).map { m => (m.name, m) }.toMap
+
+  def sign(x: Double): Double = if (x < 0) -1.0 else 1.0
 }
 

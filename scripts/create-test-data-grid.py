@@ -44,5 +44,3 @@ max_dimensions = 7
 for d in range(min_dimensions, max_dimensions + 1):
     createTestData(folder_prefix='grid', n_dimensions=d, n_files=n_files, 
                    min_value=-3, max_value=3, step=1, noise_min=-0.1, noise_max=0.1)
-    createTestData(folder_prefix='positive-grid', n_dimensions=d, n_files=n_files, 
-                   min_value=0, max_value=6, step=1, noise_min=0.0001, noise_max=0.2)
