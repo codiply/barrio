@@ -12,8 +12,9 @@ import org.scalatest.WordSpecLike
 
 import com.codiply.barrio.generic.AggregatorActor
 import com.codiply.barrio.generic.AggregatorActorProtocol.DoSendAggregate
+import com.codiply.barrio.test.TestKitConfig
 
-class AggregatorActorSpec extends TestKit(ActorSystem("AggregatorActorSpec"))
+class AggregatorActorSpec extends TestKit(ActorSystem("AggregatorActorSpec", TestKitConfig.config))
   with WordSpecLike with Matchers with BeforeAndAfterAll {
 
   override def afterAll {

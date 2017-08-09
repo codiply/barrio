@@ -5,6 +5,8 @@ import java.nio.file.Paths
 
 import scopt.OptionParser
 
+import com.codiply.barrio.geometry.Metric
+
 object ArgsConfig {
   val defaultDimensions = 1
   val defaultMaxPointsPerLeaf = 128
@@ -15,6 +17,7 @@ case class ArgsConfig(
     file: String = "",
     dimensions: Int = ArgsConfig.defaultDimensions,
     maxPointsPerLeaf: Int = ArgsConfig.defaultMaxPointsPerLeaf,
+    metric: String = Metric.euclidean.name,
     randomSeed: Option[Int] = None,
     treesPerNode: Int = ArgsConfig.defaultTreesPerNode)
 
@@ -38,6 +41,18 @@ object ArgsParser {
           })
       .action { (v, conf) => conf.copy(file = v) }
       .text("the path to the input file containing the data points")
+
+    opt[String]('m', "metric")
+      .maxOccurs(1)
+      .validate(m =>
+          if (Metric.allMetrics.contains(m.toLowerCase)) {
+            success
+          } else {
+            val options = Metric.allMetrics.keys.mkString(", ")
+            failure(s"Unkown metric ${m}. Use one of the following options: ${options}.")
+          })
+      .action( (m, conf) => conf.copy(metric = m) )
+      .text("the metric for calculating distances")
 
     opt[Int]('d', "dimensions")
       .required()

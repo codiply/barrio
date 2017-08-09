@@ -3,7 +3,7 @@ services:
   node-1:
     hostname: node-1
     build: ./docker/images/barrio/
-    command: java -jar /barrio/barrio.jar -f /data/grid-6-d/input-1.txt -d 6
+    command: java -jar /barrio/barrio.jar -f /data/positive-grid-6-d/input-1.txt -d 6 -m cosine
     environment:
       - BARRIO_AKKA_SEED_HOST=node-1:18011
       - BARRIO_AKKA_SYSTEM=barrio
@@ -23,7 +23,7 @@ services:
   node-2:
     hostname: node-2
     build: ./docker/images/barrio/
-    command: java -jar /barrio/barrio.jar -f /data/grid-6-d/input-2.txt -d 6
+    command: java -jar /barrio/barrio.jar -f /data/positive-grid-6-d/input-2.txt -d 6 -m cosine
     environment:
       - BARRIO_AKKA_SEED_HOST=node-1:18011
       - BARRIO_AKKA_SYSTEM=barrio
@@ -43,7 +43,7 @@ services:
   node-3:
     hostname: node-3
     build: ./docker/images/barrio/
-    command: java -jar /barrio/barrio.jar -f /data/grid-6-d/input-3.txt -d 6
+    command: java -jar /barrio/barrio.jar -f /data/positive-grid-6-d/input-3.txt -d 6 -m cosine
     environment:
       - BARRIO_AKKA_SEED_HOST=node-1:18011
       - BARRIO_AKKA_SYSTEM=barrio
@@ -63,7 +63,7 @@ services:
   node-4:
     hostname: node-4
     build: ./docker/images/barrio/
-    command: java -jar /barrio/barrio.jar -f /data/grid-6-d/input-1.txt -d 6
+    command: java -jar /barrio/barrio.jar -f /data/positive-grid-6-d/input-4.txt -d 6 -m cosine
     environment:
       - BARRIO_AKKA_SEED_HOST=node-1:18011
       - BARRIO_AKKA_SYSTEM=barrio

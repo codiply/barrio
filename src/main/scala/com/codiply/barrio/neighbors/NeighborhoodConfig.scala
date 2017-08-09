@@ -27,8 +27,7 @@ object NeighborhoodConfig {
         maxPointsPerLeaf = argsConfig.maxPointsPerLeaf,
         maxRequestTimeoutMilliseconds = maxRequestTimeoutMilliseconds,
         minRequestTimeoutMilliseconds = Defaults.minRequestTimeoutMilliseconds,
-        // TODO: set via command line argument
-        metric = Metric.euclidean,
+        metric = Metric.allMetrics.getOrElse(argsConfig.metric, Metric.euclidean),
         nodeName = config.getString(ConfigKey.hostname),
         treesPerNode = argsConfig.treesPerNode,
         version = VersionHelper.version)
