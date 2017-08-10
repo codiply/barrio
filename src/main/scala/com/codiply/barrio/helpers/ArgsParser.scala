@@ -14,6 +14,7 @@ object ArgsConfig {
 }
 
 case class ArgsConfig(
+    separator: String = ",",
     file: String = "",
     dimensions: Int = ArgsConfig.defaultDimensions,
     maxPointsPerLeaf: Int = ArgsConfig.defaultMaxPointsPerLeaf,
@@ -92,6 +93,11 @@ object ArgsParser {
           })
       .action( (v, conf) => conf.copy(treesPerNode = v) )
       .text("the number of trees per node")
+
+    opt[String]("separator")
+      .maxOccurs(1)
+      .action( (v, conf) => conf.copy(separator = v) )
+      .text("the separator used in the input data")
 
     help("help").text("prints this usage text")
   }

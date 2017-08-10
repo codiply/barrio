@@ -23,7 +23,8 @@ object Main extends App {
 
       val actorSystem = ActorSystem(config.getString(ConfigKey.akkaSystem))
 
-      val pointsLoader = () => PointLoader.fromCsvFile(argsConfig.file, argsConfig.dimensions)
+      val pointsLoader = () => PointLoader.fromCsvFile(
+          argsConfig.file, argsConfig.dimensions, argsConfig.separator)
 
       val random = argsConfig.randomSeed match {
         case Some(seed) => Random(seed)
