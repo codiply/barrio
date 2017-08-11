@@ -15,7 +15,8 @@ object JsonSupport {
   final case class NeighborJson(id: String, location: Option[List[Double]], distance: Double)
   final case class NeighborsRequestJson(
       k: Int,
-      location: List[Double],
+      location: Option[List[Double]],
+      locationId: Option[String],
       distanceThreshold: Double,
       includeLocation: Option[Boolean],
       timeout: Option[Int])
@@ -90,7 +91,7 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   import JsonSupport._
 
   implicit val neighborFormat = jsonFormat3(NeighborJson)
-  implicit val neighborsRequestFormat = jsonFormat5(NeighborsRequestJson)
+  implicit val neighborsRequestFormat = jsonFormat6(NeighborsRequestJson)
   implicit val neighborsResponseFormat = jsonFormat2(NeighborsResponseJson)
   implicit val memoryStatsFormat = jsonFormat4(MemoryStatsJson)
   implicit val longQuantityStatsFormat = jsonFormat4(LongQuantityStatsJson)

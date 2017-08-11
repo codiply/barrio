@@ -15,6 +15,7 @@ import com.codiply.barrio.helpers.RandomProvider
 import com.codiply.barrio.geometry.EasyDistance
 import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
+import com.codiply.barrio.geometry.Point.Coordinates
 import com.codiply.barrio.geometry.RealDistance
 
 class NeighborhoodCluster (
@@ -30,6 +31,8 @@ class NeighborhoodCluster (
 
   val points = pointsLoader().toList
   val metric = config.metric
+
+  val idToCoordinates: Map[String, Coordinates] = points.map(p => (p.id, p.location)).toMap
 
   import actorSystem.dispatcher
 
@@ -50,6 +53,22 @@ class NeighborhoodCluster (
       NeighborhoodReceptionistActor.props(nodeActorRouter), "receptionist")
 
   def getNeighbors(
+    location: Option[List[Double]],
+    locationId: Option[String],
+    k: Int,
+    distanceThreshold: RealDistance,
+    includeLocation: Boolean,
+    timeoutMilliseconds: Option[Int]): Future[Vector[Neighbor]] = {
+    (location, locationId) match {
+      case (Some(location), None) => getNeighborsByLocation(
+        location, k, distanceThreshold, includeLocation, timeoutMilliseconds)
+      case (None, Some(locationId)) => getNeighborsById(
+        locationId, k, distanceThreshold, includeLocation, timeoutMilliseconds)
+      case _ => Future(Vector[Neighbor]())
+    }
+  }
+
+  private def getNeighborsByLocation(
       location: List[Double],
       k: Int,
       distanceThreshold: RealDistance,
@@ -71,6 +90,19 @@ class NeighborhoodCluster (
       }
     } else {
       Future(Vector[Neighbor]())
+    }
+  }
+
+  private def getNeighborsById(
+      locationId: String,
+      k: Int,
+      distanceThreshold: RealDistance,
+      includeLocation: Boolean,
+      timeoutMilliseconds: Option[Int]): Future[Vector[Neighbor]] = {
+    idToCoordinates.get(locationId) match {
+      case None => Future(Vector[Neighbor]())
+      case Some(location) =>
+        getNeighborsByLocation(location, k, distanceThreshold, includeLocation, timeoutMilliseconds)
     }
   }
 
