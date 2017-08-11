@@ -20,7 +20,7 @@ object NeighborAggregatorActor {
         val folder = (aggregateContainer: NearestNeighborsContainer, newContainer: NearestNeighborsContainer) =>
           aggregateContainer.merge(newContainer)
         val mapper = (aggregateContainer: NearestNeighborsContainer) =>
-          GetNeighborsResponse(aggregateContainer.orderedDistinctNeighbors.map(_.point))
+          GetNeighborsResponse(aggregateContainer.orderedDistinctNeighbors)
         AggregatorActor.props(responseRecipient, initialValue, folder, mapper, expectedNumberOfResponses, timeout)
       }
 }

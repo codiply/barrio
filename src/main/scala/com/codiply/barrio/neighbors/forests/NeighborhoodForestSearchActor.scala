@@ -19,13 +19,15 @@ object NeighborhoodForestSearchActor {
       location: List[Double],
       k: Int,
       distanceThreshold: EasyDistance,
+      includeLocation: Boolean,
       timeoutMilliseconds: Int): Props = Props(new NeighborhoodForestSearchActor(
-          responseRecipient, treesToSearch, location, k, distanceThreshold, timeoutMilliseconds))
+          responseRecipient, treesToSearch, location, k, distanceThreshold, includeLocation, timeoutMilliseconds))
 }
 
 object NeighborhoodForestSearchActorProtocol {
   final object DoSendResponse
-  final case class NeighborsSearchTreeRequest(location: List[Double], k: Int, distanceThreshold: EasyDistance)
+  final case class NeighborsSearchTreeRequest(
+      location: List[Double], k: Int, includeLocation: Boolean, distanceThreshold: EasyDistance)
   final case class NeighborsSearchLeafResponse(container: NearestNeighborsContainer)
   final case class CandidateSubTree(root: ActorRef, minDistance: EasyDistance)
   final case class EnqueueCandidate(candidate: CandidateSubTree)
@@ -37,6 +39,7 @@ class NeighborhoodForestSearchActor(
       location: List[Double],
       k: Int,
       distanceThreshold: EasyDistance,
+      includeLocation: Boolean,
       timeoutMilliseconds: Int) extends Actor with ActorLogging {
   import context.dispatcher
   import com.codiply.barrio.neighbors.ActorProtocol._
@@ -87,7 +90,7 @@ class NeighborhoodForestSearchActor(
     }
     else {
       val subTree = prioritisedSubTrees.dequeue()
-      subTree.root ! NeighborsSearchTreeRequest(location, k, currentDistanceThreshold)
+      subTree.root ! NeighborsSearchTreeRequest(location, k, includeLocation, currentDistanceThreshold)
     }
   }
 

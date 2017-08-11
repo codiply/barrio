@@ -53,7 +53,8 @@ class NeighborhoodCluster (
       location: List[Double],
       k: Int,
       distanceThreshold: RealDistance,
-      timeoutMilliseconds: Option[Int]): Future[Vector[Point]] = {
+      includeLocation: Boolean,
+      timeoutMilliseconds: Option[Int]): Future[Vector[Neighbor]] = {
     if (location.length == config.dimensions) {
       val effectiveTimeoutMilliseconds = config.getEffectiveTimeoutMilliseconds(timeoutMilliseconds)
       implicit val askTimeout = Timeout((Constants.slightlyIncreaseTimeout(effectiveTimeoutMilliseconds)).milliseconds)
@@ -61,11 +62,15 @@ class NeighborhoodCluster (
       metric.toEasyDistance(distanceThreshold) match {
         case Some(easyDistanceThreshold) =>
           (receptionistActor ? GetNeighborsRequest(
-            location, k , easyDistanceThreshold, effectiveTimeoutMilliseconds)).mapTo[GetNeighborsResponse].map(_.neighbors)
-        case None => Future(Vector[Point]())
+            location, k , easyDistanceThreshold, includeLocation, effectiveTimeoutMilliseconds)).mapTo[GetNeighborsResponse].map(response =>
+              response.neighbors.flatMap(neighbor =>
+                config.metric.toRealDistance(neighbor.distance).map(realDistance =>
+                  Neighbor(neighbor.id, neighbor.location, realDistance)))
+            )
+        case None => Future(Vector[Neighbor]())
       }
     } else {
-      Future(Vector[Point]())
+      Future(Vector[Neighbor]())
     }
   }
 
