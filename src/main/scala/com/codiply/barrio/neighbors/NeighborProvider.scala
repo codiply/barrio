@@ -10,7 +10,8 @@ case class Neighbor(id: String, location: Option[Coordinates], distance: RealDis
 
 trait NeighborProvider {
   def getNeighbors(
-      location: List[Double],
+      location: Option[List[Double]],
+      locationId: Option[String],
       k: Int,
       distanceThreshold: RealDistance,
       includeLocation: Boolean,
