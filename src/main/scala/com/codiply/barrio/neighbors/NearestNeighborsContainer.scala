@@ -5,14 +5,22 @@ import scala.math.max
 
 import com.codiply.barrio.geometry.EasyDistance
 import com.codiply.barrio.geometry.Point
+import com.codiply.barrio.geometry.Point.Coordinates
 
-final case class NearestNeighbor(point: Point, distance: EasyDistance)
+final case class NearestNeighbor(id: String, location: Option[Coordinates], distance: EasyDistance)
 
 object NearestNeighborsContainer {
-  def apply(points: List[Point], kDesired: Int, distanceFunc: Point => EasyDistance): NearestNeighborsContainer = {
+  def apply(
+      points: List[Point],
+      kDesired: Int,
+      distanceFunc: Point => EasyDistance,
+      includeLocation: Boolean): NearestNeighborsContainer = {
     val distinctPoints = points.groupBy(_.id).map(_._2.head)
-    val orderedDistinctNeighbors = distinctPoints.map { p =>
-      NearestNeighbor(p, distanceFunc(p)) }.toVector.sortBy(_.distance.value).take(kDesired)
+    val orderedDistinctNeighbors = distinctPoints.map { p => {
+          val location = if (includeLocation) Some(p.location) else None
+          NearestNeighbor(p.id, location, distanceFunc(p))
+        }
+      }.toVector.sortBy(_.distance.value).take(kDesired)
     val distanceUpperBound = getDistanceUpperBound(orderedDistinctNeighbors, kDesired)
     NearestNeighborsContainer(orderedDistinctNeighbors, kDesired, distanceUpperBound)
   }
@@ -36,7 +44,7 @@ object NearestNeighborsContainer {
       } else {
         (neighbors1, neighbors2) match {
           case (n1 +: ns1, n2 +: ns2) =>
-            if (n1.point.id == n2.point.id) {
+            if (n1.id == n2.id) {
               loop(ns1, ns2, n1 +: mergedNeighborsReversed, kRemaining - 1)
             }
             else {

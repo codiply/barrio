@@ -119,7 +119,7 @@ class NeighborhoodTreeActor(
   def receiveLeaf(points: List[Point]): Receive = {
     case request: NeighborsSearchTreeRequest => {
       val nearestNeighborsContainer =
-        NearestNeighborsContainer(points, request.k, p => metric.easyDistance(p.location, request.location))
+        NearestNeighborsContainer(points, request.k, p => metric.easyDistance(p.location, request.location), request.includeLocation)
       sender ! NeighborsSearchLeafResponse(nearestNeighborsContainer)
     }
   }

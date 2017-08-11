@@ -38,7 +38,7 @@ class NeighborhoodReceptionistActor(
   val receive: Receive = receiveRequests orElse receiveClusterEvents
 
   def receiveRequests: Receive = {
-    case request @ GetNeighborsRequest(location, k, distanceThreshold, timeoutMilliseconds) => {
+    case request @ GetNeighborsRequest(location, k, distanceThreshold, _, timeoutMilliseconds) => {
       val originalSender = sender
       val aggregator = context.actorOf(NeighborAggregatorActor.props(
           k, originalSender, nodeCount, timeoutMilliseconds.milliseconds))
