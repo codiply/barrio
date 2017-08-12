@@ -15,10 +15,11 @@ object AggregatorActor {
     initialValue: TAggregate,
     folder: (TAggregate, TResponseIn) => TAggregate,
     mapper: TAggregate => TResponseOut,
+    earlyTerminationCondition: Option[TAggregate => Boolean],
     expectedNumberOfResponses: Int,
     timeout: FiniteDuration
   ): Props = Props(new AggregatorActor(
-      responseRecipient, initialValue, folder, mapper, expectedNumberOfResponses, timeout))
+      responseRecipient, initialValue, folder, mapper, earlyTerminationCondition, expectedNumberOfResponses, timeout))
 }
 
 object AggregatorActorProtocol {
@@ -30,6 +31,7 @@ class AggregatorActor[TAggregate, TResponseIn: ClassTag, TResponseOut](
     initialValue: TAggregate,
     folder: (TAggregate, TResponseIn) => TAggregate,
     mapper: TAggregate => TResponseOut,
+    earlyTerminationCondition: Option[TAggregate => Boolean],
     expectedNumberOfResponses: Int,
     timeout: FiniteDuration) extends Actor {
   import AggregatorActorProtocol._
@@ -46,11 +48,13 @@ class AggregatorActor[TAggregate, TResponseIn: ClassTag, TResponseOut](
     timeoutCancellable = Some(context.system.scheduler.scheduleOnce(timeout, self, DoSendAggregate))
   }
 
+  val terminateEarly = earlyTerminationCondition.getOrElse((aggregate: TAggregate) => false)
+
   def receive: Receive = {
     case incomingResponse: TResponseIn =>
       currentAggregateValue = folder(currentAggregateValue, incomingResponse)
       outstandingIncomingResponses -= 1
-      if (outstandingIncomingResponses <= 0) {
+      if (terminateEarly(currentAggregateValue) || outstandingIncomingResponses <= 0) {
         timeoutCancellable.foreach { _.cancel() }
         sendAggregate()
       }

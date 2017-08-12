@@ -14,6 +14,8 @@ import akka.actor.Props
 import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.helpers.Constants
+import com.codiply.barrio.neighbors.aggregators.NeighborAggregatorActor
+import com.codiply.barrio.neighbors.aggregators.NodeStatsAggregatorActor
 
 object NeighborhoodReceptionistActor {
   def props(nodeActorRouter: ActorRef): Props =
