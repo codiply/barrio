@@ -57,13 +57,14 @@ class NeighborhoodCluster (
     locationId: Option[String],
     k: Int,
     distanceThreshold: RealDistance,
+    includeData: Boolean,
     includeLocation: Boolean,
     timeoutMilliseconds: Option[Int]): Future[Vector[Neighbor]] = {
     (location, locationId) match {
       case (Some(location), None) => getNeighborsByLocation(
-        location, k, distanceThreshold, includeLocation, timeoutMilliseconds)
+        location, k, distanceThreshold, includeData = includeData, includeLocation = includeLocation, timeoutMilliseconds)
       case (None, Some(locationId)) => getNeighborsById(
-        locationId, k, distanceThreshold, includeLocation, timeoutMilliseconds)
+        locationId, k, distanceThreshold, includeData = includeData, includeLocation = includeLocation, timeoutMilliseconds)
       case _ => Future(Vector[Neighbor]())
     }
   }
@@ -72,6 +73,7 @@ class NeighborhoodCluster (
       location: List[Double],
       k: Int,
       distanceThreshold: RealDistance,
+      includeData: Boolean,
       includeLocation: Boolean,
       timeoutMilliseconds: Option[Int]): Future[Vector[Neighbor]] = {
     if (location.length == config.dimensions) {
@@ -81,10 +83,11 @@ class NeighborhoodCluster (
       metric.toEasyDistance(distanceThreshold) match {
         case Some(easyDistanceThreshold) =>
           (receptionistActor ? GetNeighborsRequest(
-            location, k , easyDistanceThreshold, includeLocation, effectiveTimeoutMilliseconds)).mapTo[GetNeighborsResponse].map(response =>
+            location, k , easyDistanceThreshold, includeData = includeData,
+            includeLocation = includeLocation, effectiveTimeoutMilliseconds)).mapTo[GetNeighborsResponse].map(response =>
               response.neighbors.flatMap(neighbor =>
                 config.metric.toRealDistance(neighbor.distance).map(realDistance =>
-                  Neighbor(neighbor.id, neighbor.location, realDistance)))
+                  Neighbor(neighbor.id, realDistance, neighbor.data, neighbor.location)))
             )
         case None => Future(Vector[Neighbor]())
       }
@@ -97,12 +100,14 @@ class NeighborhoodCluster (
       locationId: String,
       k: Int,
       distanceThreshold: RealDistance,
+      includeData: Boolean,
       includeLocation: Boolean,
       timeoutMilliseconds: Option[Int]): Future[Vector[Neighbor]] = {
     idToCoordinates.get(locationId) match {
       case None => Future(Vector[Neighbor]())
       case Some(location) =>
-        getNeighborsByLocation(location, k, distanceThreshold, includeLocation, timeoutMilliseconds)
+        getNeighborsByLocation(location, k, distanceThreshold,
+            includeData = includeData, includeLocation = includeLocation, timeoutMilliseconds)
     }
   }
 

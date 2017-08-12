@@ -9,30 +9,31 @@ object PointLoader {
   def fromCsvFile(
       fileName: String,
       dimensions: Int,
-      idSeparator: String,
+      separator: String,
       coordinateSeparator: String): Seq[Point] = {
     fromCsvLines(Source.fromFile(fileName)("UTF-8").getLines.toSeq,
-        dimensions, idSeparator = idSeparator, coordinateSeparator = coordinateSeparator)
+        dimensions, separator = separator, coordinateSeparator = coordinateSeparator)
   }
 
   def fromCsvLines(
       lines: Seq[String],
       dimensions: Int,
-      idSeparator: String,
+      separator: String,
       coordinateSeparator: String): Seq[Point] = {
     val parseCoordinates = createCoordinatesParser(dimensions, coordinateSeparator)
-    val parseCsvLine = createCsvLineParser(idSeparator, parseCoordinates)
+    val parseCsvLine = createCsvLineParser(separator, parseCoordinates)
     lines.filter { !_.isEmpty() }.flatMap(parseCsvLine(_))
   }
 
   def createCsvLineParser(
-      idSeparator: String,
+      separator: String,
       coordinatesParser: String => Option[Coordinates]): String => Option[Point] = {
     (line: String) => {
-      val pieces = line.split(idSeparator).map(_.trim)
-      if (pieces.length == 2) {
+      val pieces = line.split(separator).map(_.trim)
+      if (pieces.length == 2 || pieces.length == 3) {
         val id = pieces(0)
-        coordinatesParser(pieces(1)).map { Point(id, _) }
+        val data = if (pieces.length == 3) pieces(2) else ""
+        coordinatesParser(pieces(1)).map { Point(id, _, data) }
       } else {
         None
       }

@@ -4,7 +4,7 @@ import scala.math.sqrt
 
 import Point.Coordinates
 
-final case class Point(id: String, location: Coordinates)
+final case class Point(id: String, location: Coordinates, data: String)
 final case class PartitioningPlane(centroid1: Coordinates, centroid2: Coordinates)
 
 final object Point {

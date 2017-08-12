@@ -17,7 +17,7 @@ case class ArgsConfig(
     coordinateSeparator: String = ",",
     dimensions: Int = ArgsConfig.defaultDimensions,
     file: String = "",
-    idSeparator: String = ",",
+    separator: String = ":::",
     maxPointsPerLeaf: Int = ArgsConfig.defaultMaxPointsPerLeaf,
     metric: String = Metric.euclidean.name,
     randomSeed: Option[Int] = None,
@@ -95,15 +95,15 @@ object ArgsParser {
       .action( (v, conf) => conf.copy(treesPerNode = v) )
       .text("the number of trees per node")
 
-    opt[String]("idSeparator")
+    opt[String]("separator")
       .maxOccurs(1)
-      .action( (v, conf) => conf.copy(idSeparator = v) )
-      .text("the separator used in the input data for separating the id from the coordinates")
+      .action( (v, conf) => conf.copy(separator = v) )
+      .text("the separator used in the input data for separating the id, the coordinates and additional data")
 
     opt[String]("coordinatesSeparator")
       .maxOccurs(1)
       .action( (v, conf) => conf.copy(coordinateSeparator = v) )
-      .text("the separator used in the input data for separating the coordinates")
+      .text("the separator used in the input data for separating the coordinates within the coordinates field")
 
     help("help").text("prints this usage text")
   }

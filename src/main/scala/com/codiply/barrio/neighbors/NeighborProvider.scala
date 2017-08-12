@@ -6,7 +6,7 @@ import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.geometry.Point.Coordinates
 import com.codiply.barrio.geometry.RealDistance
 
-case class Neighbor(id: String, location: Option[Coordinates], distance: RealDistance)
+case class Neighbor(id: String, distance: RealDistance, data: Option[String], location: Option[Coordinates])
 
 trait NeighborProvider {
   def getNeighbors(
@@ -14,6 +14,7 @@ trait NeighborProvider {
       locationId: Option[String],
       k: Int,
       distanceThreshold: RealDistance,
+      includeData: Boolean,
       includeLocation: Boolean,
       timeoutMilliseconds: Option[Int]): Future[Vector[Neighbor]]
   def getHealth(): Future[ClusterHealth]
