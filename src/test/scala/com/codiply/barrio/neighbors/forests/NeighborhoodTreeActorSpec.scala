@@ -38,10 +38,10 @@ class NeighborhoodTreeActorSpec extends TestKit(ActorSystem("NeighborhoodTreeAct
     val treesPerNode = 1
     val treeStartingDepth = 11
 
-    val point0 = Point("point0", List(0.0, 0.0))
-    val point1 = Point("point1", List(1.0, 0.0))
-    val point2 = Point("point2", List(1.0, 1.0))
-    val point3 = Point("point3", List(0.0, 1.0))
+    val point0 = Point("point0", List(0.0, 0.0), "data-0")
+    val point1 = Point("point1", List(1.0, 0.0), "data-1")
+    val point2 = Point("point2", List(1.0, 1.0), "data-2")
+    val point3 = Point("point3", List(0.0, 1.0), "data-3")
 
     def createConfig(maxPointsPerLeaf: Int): NeighborhoodConfig = NeighborhoodConfig(
       defaultRequestTimeoutMilliseconds = NeighborhoodConfig.Defaults.defaultRequestTimeoutMilliseconds,

@@ -29,7 +29,7 @@ def createTestData(
         coordinates_with_noise = [str(x + noise_min + noise_width * random()) for x in coordinates]
         f = files[randint(0, n_files - 1)]
     
-        f.write("point-" + str(i) + ",")
+        f.write("point-" + str(i) + ":::")
         f.write(",".join(coordinates_with_noise))
         f.write("\n")
 

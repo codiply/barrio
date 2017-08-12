@@ -7,18 +7,20 @@ import com.codiply.barrio.geometry.EasyDistance
 import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.geometry.Point.Coordinates
 
-final case class NearestNeighbor(id: String, location: Option[Coordinates], distance: EasyDistance)
+final case class NearestNeighbor(id: String, distance: EasyDistance, data: Option[String], location: Option[Coordinates])
 
 object NearestNeighborsContainer {
   def apply(
       points: List[Point],
       kDesired: Int,
       distanceFunc: Point => EasyDistance,
+      includeData: Boolean,
       includeLocation: Boolean): NearestNeighborsContainer = {
     val distinctPoints = points.groupBy(_.id).map(_._2.head)
     val orderedDistinctNeighbors = distinctPoints.map { p => {
           val location = if (includeLocation) Some(p.location) else None
-          NearestNeighbor(p.id, location, distanceFunc(p))
+          val data = if (includeData) Some(p.data) else None
+          NearestNeighbor(p.id, distanceFunc(p), data, location)
         }
       }.toVector.sortBy(_.distance.value).take(kDesired)
     val distanceUpperBound = getDistanceUpperBound(orderedDistinctNeighbors, kDesired)

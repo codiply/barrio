@@ -26,7 +26,7 @@ object Main extends App {
       val pointsLoader = () => PointLoader.fromCsvFile(
           argsConfig.file,
           argsConfig.dimensions,
-          idSeparator = argsConfig.idSeparator,
+          separator = argsConfig.separator,
           coordinateSeparator = argsConfig.coordinateSeparator)
 
       val random = argsConfig.randomSeed match {

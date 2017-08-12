@@ -62,14 +62,15 @@ class NeighborhoodForestActor(
         initialisedTrees = sender +: initialisedTrees
       }
     }
-    case request @ GetNeighborsRequest(location, k, distanceThreshold, includeLocation, timeoutMilliseconds) => {
-      if (location.length == config.dimensions) {
+    case request: GetNeighborsRequest => {
+      if (request.location.length == config.dimensions) {
         val originalSender = sender
-        val effectiveTimeoutMilliseconds = config.getEffectiveTimeoutMilliseconds(Some(timeoutMilliseconds))
+        val effectiveTimeoutMilliseconds = config.getEffectiveTimeoutMilliseconds(Some(request.timeoutMilliseconds))
         val searchActor = context.actorOf(NeighborhoodForestSearchActor.props(
-            originalSender, initialisedTrees, location, k, distanceThreshold, includeLocation, effectiveTimeoutMilliseconds))
+            originalSender, initialisedTrees, request.location, request.k, request.distanceThreshold,
+            includeData = request.includeData, includeLocation = request.includeLocation, effectiveTimeoutMilliseconds))
       } else {
-        sender ! NearestNeighborsContainer.empty(k)
+        sender ! NearestNeighborsContainer.empty(request.k)
       }
     }
     case GetNodeStatsRequest(timeoutMilliseconds, doGarbageCollect) => {

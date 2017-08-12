@@ -37,12 +37,17 @@ class WebServer(neighborhood: NeighborProvider) extends HttpApp with JsonSupport
         decodeRequest {
           entity(as[NeighborsRequestJson]) { request =>
             onSuccess(neighborhood.getNeighbors(
-                request.location, request.locationId, request.k, RealDistance(request.distanceThreshold),
-                request.includeLocation.isDefined && request.includeLocation.get, request.timeout)) { neighbors =>
+                request.location,
+                request.locationId,
+                request.k,
+                RealDistance(request.distanceThreshold),
+                includeData = request.includeData.isDefined && request.includeData.get,
+                includeLocation = request.includeLocation.isDefined && request.includeLocation.get,
+                request.timeout)) { neighbors =>
               val response = NeighborsResponseJson(
                   count = neighbors.length,
                   neighbors = neighbors.map(neighbor =>
-                    NeighborJson(neighbor.id, neighbor.location, neighbor.distance.value))).toJson
+                    NeighborJson(neighbor.id, neighbor.distance.value, neighbor.data, neighbor.location))).toJson
               complete(HttpEntity(ContentTypes.`application/json`, response.toString))
             }
           }

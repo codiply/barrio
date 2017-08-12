@@ -10,6 +10,7 @@ object ActorProtocol {
       location: List[Double],
       k: Int,
       distanceThreshold: EasyDistance,
+      includeData: Boolean,
       includeLocation: Boolean,
       timeoutMilliseconds: Int)
   final case class GetNeighborsResponse(neighbors: Vector[NearestNeighbor])
