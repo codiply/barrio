@@ -23,11 +23,14 @@ object Main extends App {
 
       val actorSystem = ActorSystem(config.getString(ConfigKey.akkaSystem))
 
-      val pointsLoader = () => PointLoader.fromCsvFile(
-          argsConfig.file,
-          argsConfig.dimensions,
-          separator = argsConfig.separator,
-          coordinateSeparator = argsConfig.coordinateSeparator)
+      val pointsLoader =
+        if (argsConfig.isUrl) {
+          () => PointLoader.fromCsvUrl(argsConfig.file, argsConfig.dimensions,
+            separator = argsConfig.separator, coordinateSeparator = argsConfig.coordinateSeparator)
+        } else {
+          () => PointLoader.fromCsvFile(argsConfig.file, argsConfig.dimensions,
+            separator = argsConfig.separator, coordinateSeparator = argsConfig.coordinateSeparator)
+        }
 
       val random = argsConfig.randomSeed match {
         case Some(seed) => Random(seed)
