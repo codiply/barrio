@@ -11,7 +11,8 @@ import org.scalatest.Matchers
 import org.scalatest.WordSpecLike
 
 import com.codiply.barrio.generic.AggregatorActor
-import com.codiply.barrio.generic.AggregatorActorProtocol.DoSendAggregate
+import com.codiply.barrio.generic.AggregatorActorProtocol.TerminateAggregationEarly
+import com.codiply.barrio.generic.AggregatorActorProtocol.CancelAggregation
 import com.codiply.barrio.test.TestKitConfig
 
 class AggregatorActorSpec extends TestKit(ActorSystem("AggregatorActorSpec", TestKitConfig.config))
@@ -136,7 +137,7 @@ class AggregatorActorSpec extends TestKit(ActorSystem("AggregatorActorSpec", Tes
       testProbe.expectMsg(justBeforeTimeout, expectedResponse)
       testProbe.expectTerminated(aggregator)
     }
-    "send back the aggregate when it receives a DoSendAggregate message" in {
+    "send back the aggregate when it receives a TerminateAggregationEarly message" in {
       val testProbe = TestProbe()
 
       val expectedNumberOfResponses = 3
@@ -146,10 +147,26 @@ class AggregatorActorSpec extends TestKit(ActorSystem("AggregatorActorSpec", Tes
           testProbe.ref, initialValue, folder, mapper, noEarlyTerminationCondition, expectedNumberOfResponses, timeout))
       testProbe.watch(aggregator)
 
-      aggregator ! DoSendAggregate
+      aggregator ! TerminateAggregationEarly
 
       testProbe.expectMsg(justBeforeTimeout, expectedResponse)
       testProbe.expectTerminated(aggregator)
+    }
+    "does not send back the aggregate when it receives a CancelAggregation message" in {
+      val testProbe = TestProbe()
+      val terminationProbe = TestProbe()
+
+      val expectedNumberOfResponses = 3
+      val expectedResponse = "I"
+
+      val aggregator = system.actorOf(AggregatorActor.props(
+          testProbe.ref, initialValue, folder, mapper, noEarlyTerminationCondition, expectedNumberOfResponses, timeout))
+      terminationProbe.watch(aggregator)
+
+      aggregator ! CancelAggregation
+
+      testProbe.expectNoMsg(justAfterTimeout)
+      terminationProbe.expectTerminated(aggregator)
     }
   }
 }
