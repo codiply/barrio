@@ -62,7 +62,7 @@ class NeighborhoodForestActor(
         initialisedTrees = sender +: initialisedTrees
       }
     }
-    case request: GetNeighborsRequest => {
+    case request: GetNeighborsRequestByLocation => {
       if (request.location.length == config.dimensions) {
         val originalSender = sender
         val effectiveTimeoutMilliseconds = config.getEffectiveTimeoutMilliseconds(Some(request.timeoutMilliseconds))
