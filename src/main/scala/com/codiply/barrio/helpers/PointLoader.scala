@@ -15,6 +15,15 @@ object PointLoader {
         dimensions, separator = separator, coordinateSeparator = coordinateSeparator)
   }
 
+  def fromCsvUrl(
+      url: String,
+      dimensions: Int,
+      separator: String,
+      coordinateSeparator: String): Seq[Point] = {
+    fromCsvLines(Source.fromURL(url)("UTF-8").getLines.toSeq,
+        dimensions, separator = separator, coordinateSeparator = coordinateSeparator)
+  }
+
   def fromCsvLines(
       lines: Seq[String],
       dimensions: Int,
