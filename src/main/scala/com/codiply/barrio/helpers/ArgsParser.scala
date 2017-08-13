@@ -95,7 +95,7 @@ object ArgsParser {
       .action( (v, conf) => conf.copy(separator = v) )
       .text("the separator used in the input data for separating the id, the coordinates and additional data")
 
-    opt[String]("coordinatesSeparator")
+    opt[String]("coordinateSeparator")
       .maxOccurs(1)
       .action( (v, conf) => conf.copy(coordinateSeparator = v) )
       .text("the separator used in the input data for separating the coordinates within the coordinates field")
@@ -108,10 +108,12 @@ object ArgsParser {
     help("help").text("prints this usage text")
 
     checkConfig(conf => {
-      if (!conf.isUrl && Files.exists(Paths.get(conf.file))) {
-        failure("Value <file> refers to non-existent file")
-      } else {
-        success
+      conf match {
+        case _ if (!conf.isUrl && Files.exists(Paths.get(conf.file))) =>
+          failure("Value <file> refers to non-existent file")
+        case _ if (conf.separator == conf.coordinateSeparator) =>
+          failure("value <separator> cannot be the same as <coordinateSeparator>")
+        case _ => success
       }
     })
   }
