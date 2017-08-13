@@ -34,35 +34,33 @@ Run from the root folder
 
 This will create 4 input files in `\data\grid\` folder.
 
+### Input file format
+
+Each line contains one data point, and  is split into 3 parts using a separator that defaults to three colons (`:::`)
+
+    <id>:::<comma separated coordinates>:::<additional data>
+
+- The first part is a unique string that identifies the point. 
+- The second part contains the coordinates separated by a different separator that defaults to comma (`,`).
+- The third part is a string that can contain additional data for the specific data point.
+
 ### Run single node
 
 Run
 
-    sbt "run -f path-to-input-data-file -d number-of-dimensions"
+    sbt 'run -f <path to input data file> -d <number of dimensions>'
+    
+or 
+
+    sbt 'run --isUrl -f <url to input data file> -d <number of dimensions>'
     
 
-You can make a `POST` request to [http://localhost:18001/neighbors](http://localhost:18001/neighbors).
-For example, to get the 3 nearest neighbors from the origin, the request is
+This will start the server on [http://localhost:18001](http://localhost:18001).
 
-    {
-      "location": [0.0, 0.0, 0.0],
-      "k": 3,
-      "distanceThreshold": 1.0
-    }
-    
-The `distanceThreshold` defines an area around the given location that will be searched thoroughly. 
-Note that if this threshold and the number of neighbors `k` are too big, the search might time out, 
-returning the best results up to this point without any guarantees.
+You can specify the two separators with the following arguments
 
-If you prefer to get any results found in a limited amount of time, you can set the timeout (in milliseconds) in the request
+    --separator "@~@" --coordinateSeparator "$"
 
-    {
-      "location": [0.0, 0.0, 0.0],
-      "k": 3,
-      "distanceThreshold": 10.0,
-      "timeout": 1000
-    }
-    
 
 ### Run cluster in docker
 
@@ -78,10 +76,10 @@ and then start the cluster
 This uses the configuration in `docker-compose.yml` and it will create a cluster of 4 nodes. 
 Their endpoints are accessible on the host machine here:
 
-- Node 1: [http://localhost:19001/neighbors](http://localhost:19001/neighbors)
-- Node 2: [http://localhost:19002/neighbors](http://localhost:19002/neighbors)
-- Node 3: [http://localhost:19003/neighbors](http://localhost:19003/neighbors)
-- Node 4: [http://localhost:19004/neighbors](http://localhost:19004/neighbors)
+- Node 1: [http://localhost:19001](http://localhost:19001)
+- Node 1: [http://localhost:19002](http://localhost:19002)
+- Node 1: [http://localhost:19003](http://localhost:19003)
+- Node 1: [http://localhost:19004](http://localhost:19004)
     
 See the logs with
 
@@ -103,7 +101,7 @@ Bring the cluster down with
 - `BARRIO_MAX_REQUEST_TIMEOUT`: the maximum timeout allowed to be set in a request
 - `BARRIO_WEB_API_PORT`: the port of the Web API endpoint
 
-#### default values
+### default values
 
 - `BARRIO_AKKA_SEED_HOST`: `"localhost:18011"`
 - `BARRIO_AKKA_SYSTEM`: `"barrio"`
@@ -112,3 +110,58 @@ Bring the cluster down with
 - `BARRIO_HOSTNAME`: `"localhost"`
 - `BARRIO_MAX_REQUEST_TIMEOUT`: `60000`
 - `BARRIO_WEB_API_PORT`: `18001`
+
+## API
+
+### Get neighbors by location
+
+To get neighbors  make a `POST` request to `/neighbors/`.
+For example, to get the 3 nearest neighbors from the origin, the request is
+
+    {
+      "location": [0.0, 0.0, 0.0],
+      "k": 3,
+      "distanceThreshold": 1.0
+    }
+    
+The `distanceThreshold` defines an area around the given location that will be searched thoroughly. 
+Note that if this threshold and the number of neighbors `k` are too big, the search might time out, 
+returning the best results up to this point without any guarantees. The default value is `0.0`.
+
+If you prefer to get all results found in a limited amount of time, you can set the timeout (in milliseconds) in the request
+
+    {
+      "location": [0.0, 0.0, 0.0],
+      "k": 3,
+      "distanceThreshold": 10.0,
+      "timeout": 1000
+    }
+    
+You can request to get the coordinates of each neighbor and/or its additional data
+
+    {
+      "location": [0.0, 0.0, 0.0],
+      "k": 3,
+      "distanceThreshold": 10.0,
+      "includeLocation": true,
+      "includeData": true
+    }
+    
+both of which default to `false`. Depending on the number of dimensions and the size of the additional data, this might make the response large.
+    
+### Get neighbors by location Id
+
+Alternatively, you can obtain neighbors around a given known location identified by its Id by `POST`-ing to the same resource`/neighbors/`
+
+    {
+      "locationId": "point-1",
+      "k": 3
+    }
+
+All settings used in getting neighbors by location apply here too.
+
+### Debugging
+
+You can get cluster statistics via a `GET` request to `/stats/`.
+
+You can check for errors and discrepancies between the nodes in the cluster via a `GET` request to `/health/`.
