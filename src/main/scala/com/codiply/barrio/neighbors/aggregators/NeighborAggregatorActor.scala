@@ -1,4 +1,4 @@
-package com.codiply.barrio.neighbors
+package com.codiply.barrio.neighbors.aggregators
 
 import scala.concurrent.duration._
 
@@ -9,6 +9,7 @@ import com.codiply.barrio.generic.AggregatorActor
 import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.neighbors.ActorProtocol._
+import com.codiply.barrio.neighbors.NearestNeighborsContainer
 
 object NeighborAggregatorActor {
   def props(
@@ -21,6 +22,6 @@ object NeighborAggregatorActor {
           aggregateContainer.merge(newContainer)
         val mapper = (aggregateContainer: NearestNeighborsContainer) =>
           GetNeighborsResponse(aggregateContainer.orderedDistinctNeighbors)
-        AggregatorActor.props(responseRecipient, initialValue, folder, mapper, expectedNumberOfResponses, timeout)
+        AggregatorActor.props(responseRecipient, initialValue, folder, mapper, None, expectedNumberOfResponses, timeout)
       }
 }

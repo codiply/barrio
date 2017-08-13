@@ -1,4 +1,4 @@
-package com.codiply.barrio.neighbors
+package com.codiply.barrio.neighbors.aggregators
 
 import scala.concurrent.duration._
 
@@ -8,6 +8,8 @@ import com.codiply.barrio.generic.AggregatorActor
 
 import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.neighbors.ActorProtocol._
+import com.codiply.barrio.neighbors.ClusterStats
+import com.codiply.barrio.neighbors.NodeStats
 
 object NodeStatsAggregatorActor {
   def props(
@@ -18,6 +20,6 @@ object NodeStatsAggregatorActor {
         val folder = (allNodeStats: Map[String, NodeStats], response: GetNodeStatsResponse) =>
           allNodeStats + (response.nodeName -> response.stats)
         val mapper = (allNodeStats: Map[String, NodeStats]) => GetClusterStatsResponse(ClusterStats(allNodeStats))
-        AggregatorActor.props(responseRecipient, initialValue, folder, mapper, expectedNumberOfResponses, timeout)
+        AggregatorActor.props(responseRecipient, initialValue, folder, mapper, None, expectedNumberOfResponses, timeout)
       }
 }

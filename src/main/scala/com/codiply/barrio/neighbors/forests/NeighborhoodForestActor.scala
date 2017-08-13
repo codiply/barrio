@@ -17,7 +17,7 @@ import com.codiply.barrio.helpers.Constants
 import com.codiply.barrio.helpers.RandomProvider
 import com.codiply.barrio.neighbors.ActorProtocol._
 import com.codiply.barrio.neighbors.NeighborhoodConfig
-import com.codiply.barrio.neighbors.NeighborAggregatorActor
+import com.codiply.barrio.neighbors.aggregators.NeighborAggregatorActor
 import com.codiply.barrio.neighbors.NodeStats
 import com.codiply.barrio.neighbors.TreeStats
 
@@ -62,7 +62,7 @@ class NeighborhoodForestActor(
         initialisedTrees = sender +: initialisedTrees
       }
     }
-    case request: GetNeighborsRequest => {
+    case request: GetNeighborsRequestByLocation => {
       if (request.location.length == config.dimensions) {
         val originalSender = sender
         val effectiveTimeoutMilliseconds = config.getEffectiveTimeoutMilliseconds(Some(request.timeoutMilliseconds))
