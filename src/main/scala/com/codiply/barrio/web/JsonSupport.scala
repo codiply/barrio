@@ -17,7 +17,7 @@ object JsonSupport {
       k: Int,
       location: Option[List[Double]],
       locationId: Option[String],
-      distanceThreshold: Double,
+      distanceThreshold: Option[Double],
       includeData: Option[Boolean],
       includeLocation: Option[Boolean],
       timeout: Option[Int])

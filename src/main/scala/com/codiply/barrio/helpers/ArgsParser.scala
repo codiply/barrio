@@ -109,7 +109,7 @@ object ArgsParser {
 
     checkConfig(conf => {
       conf match {
-        case _ if (!conf.isUrl && Files.exists(Paths.get(conf.file))) =>
+        case _ if (!conf.isUrl && !Files.exists(Paths.get(conf.file))) =>
           failure("Value <file> refers to non-existent file")
         case _ if (conf.separator == conf.coordinateSeparator) =>
           failure("value <separator> cannot be the same as <coordinateSeparator>")

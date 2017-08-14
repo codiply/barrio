@@ -60,17 +60,18 @@ class NeighborhoodCluster (
     location: Option[List[Double]],
     locationId: Option[String],
     k: Int,
-    distanceThreshold: RealDistance,
+    distanceThreshold: Option[RealDistance],
     includeData: Boolean,
     includeLocation: Boolean,
     timeoutMilliseconds: Option[Int]): Future[Vector[Neighbor]] = {
     val effectiveTimeoutMilliseconds = config.getEffectiveTimeoutMilliseconds(timeoutMilliseconds)
+    val effectiveDistanceThreshold = distanceThreshold.getOrElse(RealDistance.zero)
     (location, locationId) match {
       case (Some(location), None) => getNeighborsByLocation(
-        location, k, distanceThreshold,
+        location, k, effectiveDistanceThreshold,
         includeData = includeData, includeLocation = includeLocation, effectiveTimeoutMilliseconds)
       case (None, Some(locationId)) => getNeighborsByLocationId(
-        locationId, k, distanceThreshold,
+        locationId, k, effectiveDistanceThreshold,
         includeData = includeData, includeLocation = includeLocation, effectiveTimeoutMilliseconds)
       case _ => Future(Vector[Neighbor]())
     }

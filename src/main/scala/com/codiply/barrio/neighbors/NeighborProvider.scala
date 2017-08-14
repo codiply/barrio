@@ -13,7 +13,7 @@ trait NeighborProvider {
       location: Option[List[Double]],
       locationId: Option[String],
       k: Int,
-      distanceThreshold: RealDistance,
+      distanceThreshold: Option[RealDistance],
       includeData: Boolean,
       includeLocation: Boolean,
       timeoutMilliseconds: Option[Int]): Future[Vector[Neighbor]]
