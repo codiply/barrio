@@ -40,7 +40,7 @@ class WebServer(neighborhood: NeighborProvider) extends HttpApp with JsonSupport
                 request.location,
                 request.locationId,
                 request.k,
-                RealDistance(request.distanceThreshold),
+                request.distanceThreshold.map(RealDistance(_)),
                 includeData = request.includeData.isDefined && request.includeData.get,
                 includeLocation = request.includeLocation.isDefined && request.includeLocation.get,
                 request.timeout)) { neighbors =>

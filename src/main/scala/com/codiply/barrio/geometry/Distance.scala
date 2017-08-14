@@ -1,6 +1,8 @@
 package com.codiply.barrio.geometry
 
 object EasyDistance {
+  val zero = EasyDistance(0.0)
+
   def min(distance1: EasyDistance, distance2: EasyDistance): EasyDistance =
     if (distance1.lessEqualThan(distance2)) {
       distance1
@@ -15,6 +17,8 @@ final case class EasyDistance(value: Double) {
 }
 
 object RealDistance {
+  val zero = RealDistance(0.0)
+
   def min(distance1: RealDistance, distance2: RealDistance): RealDistance =
     if (distance1.lessEqualThan(distance2)) {
       distance1
