@@ -11,7 +11,8 @@ libraryDependencies ++= {
   Seq(
     "com.github.scopt" %% "scopt" % "3.6.0",
     "org.scalactic" %% "scalactic" % "3.0.1",
-    "org.scalatest" %% "scalatest" % "3.0.1" % "test",
+    "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % Test,
+    "org.scalatest" %% "scalatest" % "3.0.1" % Test,
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
     "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
