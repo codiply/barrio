@@ -76,7 +76,7 @@ class NeighborhoodTreeActorSpec extends TestKit(ActorSystem("NeighborhoodTreeAct
 
       parentProbe.expectMsg(timeout, TreeInitialised)
     }
-    "send the expected messages when it is initialised with one points" in {
+    "send the expected messages when it is initialised with one point" in {
       val statsProbe = TestProbe()
       val parentProbe = TestProbe()
 

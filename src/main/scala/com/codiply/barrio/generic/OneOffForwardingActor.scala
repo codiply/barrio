@@ -8,30 +8,31 @@ import akka.actor.Actor.Receive
 import akka.actor.ActorRef
 import akka.actor.Cancellable
 import akka.actor.Props
-import ForwardingActor.Forward
 
-object ForwardingActor {
+import OneOffForwardingActor.OneOffForward
+
+object OneOffForwardingActor {
   def props[TResponseIn: ClassTag](
-    mapper: TResponseIn => Forward,
-    timeoutForward: Option[Forward],
+    mapper: TResponseIn => OneOffForward,
+    timeoutForward: Option[OneOffForward],
     timeout: FiniteDuration): Props =
-      Props(new ForwardingActor(mapper, timeoutForward, timeout))
+      Props(new OneOffForwardingActor(mapper, timeoutForward, timeout))
 
-  case class Forward(
+  case class OneOffForward(
       from: ActorRef,
       to: ActorRef,
       message: AnyRef)
 }
 
-object ForwardingActorProtocol {
+object OneOffForwardingActorProtocol {
   object ForwardTimeoutMessage
 }
 
-class ForwardingActor[TResponseIn: ClassTag](
-    forwardMapper: TResponseIn => Forward,
-    forwardOnTimeout: Option[Forward],
+class OneOffForwardingActor[TResponseIn: ClassTag](
+    forwardMapper: TResponseIn => OneOffForward,
+    forwardOnTimeout: Option[OneOffForward],
     timeout: FiniteDuration) extends Actor {
-  import ForwardingActorProtocol._
+  import OneOffForwardingActorProtocol._
   import context.dispatcher
 
   val timeoutCancellable: Cancellable =
@@ -47,7 +48,7 @@ class ForwardingActor[TResponseIn: ClassTag](
       context.stop(self)
   }
 
-  private def doForward(forward: Forward) = {
+  private def doForward(forward: OneOffForward) = {
     forward.to.tell(forward.message, forward.from)
   }
 }
