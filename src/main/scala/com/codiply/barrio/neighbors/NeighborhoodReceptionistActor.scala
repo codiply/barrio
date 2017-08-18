@@ -12,8 +12,8 @@ import akka.cluster.ClusterEvent._
 import akka.actor.Props
 
 import com.codiply.barrio.generic.AggregatorActorProtocol.TerminateAggregationEarly
-import com.codiply.barrio.generic.ForwardingActor
-import com.codiply.barrio.generic.ForwardingActor.Forward
+import com.codiply.barrio.generic.OneOffForwardingActor
+import com.codiply.barrio.generic.OneOffForwardingActor.OneOffForward
 import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.helpers.Constants
@@ -65,7 +65,7 @@ class NeighborhoodReceptionistActor(
 
       val forwardingLogic = (getLocationResponse: GetLocationResponse) =>
         getLocationResponse.location match {
-          case Some(location) => Forward(
+          case Some(location) => OneOffForward(
               from = neighborAggregator,
               to = nodeActorRouter,
               message = GetNeighborsRequestByLocation(
@@ -73,10 +73,10 @@ class NeighborhoodReceptionistActor(
                 includeData = request.includeData,
                 includeLocation = request.includeLocation,
                 slightlyReducedTimeout))
-          case None => Forward(from = myself, to = neighborAggregator, message = TerminateAggregationEarly)
+          case None => OneOffForward(from = myself, to = neighborAggregator, message = TerminateAggregationEarly)
       }
 
-      val forwardingActor = context.actorOf(ForwardingActor.props(forwardingLogic, None, slightlyReducedTimeout.milliseconds))
+      val forwardingActor = context.actorOf(OneOffForwardingActor.props(forwardingLogic, None, slightlyReducedTimeout.milliseconds))
 
       val locationIndexAggregator = context.actorOf(LocationIndexAggregatorActor.props(
           forwardingActor, nodeCount, slightlyReducedTimeout.milliseconds))
