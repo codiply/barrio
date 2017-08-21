@@ -21,6 +21,8 @@ libraryDependencies ++= {
   )
 }
 
+// Do not run tests as part of assembly
+test in assembly := {}
 assemblyOutputPath in assembly := file("target/barrio/barrio.jar")
 mainClass in assembly := Some("com.codiply.barrio.Main")
 
