@@ -1,5 +1,19 @@
 language: scala
 scala:
-   - 2.11.11
+- 2.11.11
 script:
-  - sbt ++$TRAVIS_SCALA_VERSION scalastyle test:scalastyle test
+- sbt ++$TRAVIS_SCALA_VERSION scalastyle test:scalastyle test assembly
+deploy:
+  provider: s3
+  access_key_id: AKIAJLPPAC6IATARNM3Q
+  secret_access_key:
+    secure: T6CMp+5RkfuxVmArgThk2VZPPDEHQxsJfSZXYoJqqA9CUSdE1+2pQ0bAk2+qIgBwigNR6i6kjaOfkzEy2RQElWZUeqXayYvp+BtcHGjNxFQzHats0QO6Hwe9e5THhTME2Uj/z6RCbm96iu/PoB7Vt7kVtnFsHJ5n/iaFc2/Url0nnbfQlFb+MZWYMqoCDQNZxaNqO1PfXMB9skxDQsu/860MoA9Wujlgz4CCfxkntpROWS3cHO5vvQggZXUPiwTKnZX9FKrhuGMWv0dI9IR5uzKQ0Qv67MGZVUJqeByne9SniBoROr8/Z5S2Gn8aQg7N5l5EUsKCbR8qc5DD/fnene2DZP0hxJQZTdPvlYSGtZoYjgTkJv4Y2aDNO5G+Gc6X0vK3E4LKoYruF1u19fdf7Fskh1Ji4SH7yoLpaZALgfFuLLvWG2QvDNUwMvaP7vkpE9FxpKs8ia3noAwXMoXTCNDAA1qYXH/WLMWQdR0lcfnDRfWwW37ZszRSt7Xm5bes8RdvDmMOPbe4/y4+QYqBge+Lg5ew6sCIdg2m9zTuCQYyebUzWl+6qYaw5bHWPqDLHku4V3JdahMJ76quMcZi9qYvoLlMy5LHfLfugrXx1qip3giyYTJL6RMJy7syBkFkJOCCN/KJ/hbOSyDsWdBVUsFVtC/Hql7MOXlFzdx+WdI=
+  bucket: barrio-ci
+  region: eu-west-1
+  local-dir: $TRAVIS_BUILD_DIR/target/barrio
+  upload-dir: build/$TRAVIS_BUILD_NUMBER
+  acl: public_read
+  skip_cleanup: true
+  on:
+    repo: codiply/barrio
+    all_branches: true
