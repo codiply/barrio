@@ -1,5 +1,7 @@
 language: scala
 sudo: required
+env:
+  - JMETER_HOME=$HOME/apache-jmeter
 cache:
   # These directories are cached to S3 at the end of the build
   directories:
@@ -11,6 +13,8 @@ before_cache:
   - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
 scala:
   - 2.11.11
+before_script:
+  - $TRAVIS_BUILD_DIR/travis/install-jmeter.sh $JMETER_HOME
 script:
   - sbt ++$TRAVIS_SCALA_VERSION scalastyle test:scalastyle test assembly
   - docker build $TRAVIS_BUILD_DIR/docker/images/barrio-performance-test/ -t barrio
@@ -18,6 +22,7 @@ script:
   - docker run -d -v $TRAVIS_BUILD_DIR/target/barrio/:/barrio/ -p 18001:18001 barrio
   - sleep 60
   - curl http://localhost:18001/stats
+  - $JMETER_HOME/bin/jmeter -n -t $TRAVIS_BUILD_DIR/travis/jmeter.jmx
 deploy:
   provider: s3
   access_key_id: AKIAJLPPAC6IATARNM3Q
