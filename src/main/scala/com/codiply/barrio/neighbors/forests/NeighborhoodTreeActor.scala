@@ -97,14 +97,14 @@ class NeighborhoodTreeActor(
                 Child(centroidRight, treeRight)) => {
           val isCloserToLeft = closerToLeft(centroidLeft, centroidRight)(request.location)
           val selectedSubTree = if (isCloserToLeft) treeLeft else treeRight
-          if (EasyDistance.zero.lessThan(request.distanceThreshold)) {
+          if (request.distanceThreshold > EasyDistance.zero) {
             val otherSubTree = if (isCloserToLeft) treeRight else treeLeft
             // In the unlikely event that the two centroids have the same coordinates,
             // give zero distance to the boundary so that both leafs are inspected.
             val distanceToBoundary = metric.easyDistanceToPlane(
                 PartitioningPlane(centroidLeft, centroidRight)).map { _(request.location) }.getOrElse(EasyDistance(0.0))
 
-            if (distanceToBoundary.lessEqualThan(request.distanceThreshold)) {
+            if (distanceToBoundary <= request.distanceThreshold) {
               sender ! EnqueueCandidate(CandidateSubTree(otherSubTree, distanceToBoundary))
             }
           }
@@ -129,7 +129,7 @@ class NeighborhoodTreeActor(
 
   private def closerToLeft(centroidLeft: Coordinates, centroidRight: Coordinates) =
     (location: Coordinates) =>
-      metric.easyDistance(centroidLeft, location).lessThan(metric.easyDistance(centroidRight, location))
+      metric.easyDistance(centroidLeft, location) < metric.easyDistance(centroidRight, location)
 
   private def signalTreeInitialised() = {
     context.parent ! TreeInitialised
