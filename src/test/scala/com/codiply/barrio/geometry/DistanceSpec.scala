@@ -14,15 +14,25 @@ class DistanceSpec extends FlatSpec {
   val easyTwo = EasyDistance(two)
   val easyThree = EasyDistance(three)
 
-  "EasyDistance.lessThan()" should "do the right thing" in {
-    assertResult(true, "when is actually less") { easyOne.lessThan(easyTwo) }
-    assertResult(false, "when is actually equal") { easyTwo.lessThan(easyTwo) }
-    assertResult(false, "when is actually greater") { easyThree.lessThan(easyTwo) }
+  "EasyDistance.<()" should "do the right thing" in {
+    assertResult(true, "when is actually less") { easyOne < easyTwo }
+    assertResult(false, "when is actually equal") { easyTwo < easyTwo }
+    assertResult(false, "when is actually greater") { easyThree < easyTwo }
   }
-  "EasyDistance.lessEqualThan()" should "do the right thing" in {
-    assertResult(true, "when is actually less") { easyOne.lessEqualThan(easyTwo) }
-    assertResult(true, "when is actually equal") { easyTwo.lessEqualThan(easyTwo) }
-    assertResult(false, "when is actually greater") { easyThree.lessEqualThan(easyTwo) }
+  "EasyDistance.>()" should "do the right thing" in {
+    assertResult(false, "when is actually less") { easyOne > easyTwo }
+    assertResult(false, "when is actually equal") { easyTwo > easyTwo }
+    assertResult(true, "when is actually greater") { easyThree > easyTwo }
+  }
+  "EasyDistance.<=()" should "do the right thing" in {
+    assertResult(true, "when is actually less") { easyOne <= easyTwo }
+    assertResult(true, "when is actually equal") { easyTwo <= easyTwo }
+    assertResult(false, "when is actually greater") { easyThree <= easyTwo }
+  }
+  "EasyDistance.>=()" should "do the right thing" in {
+    assertResult(false, "when is actually less") { easyOne >= easyTwo }
+    assertResult(true, "when is actually equal") { easyTwo >= easyTwo }
+    assertResult(true, "when is actually greater") { easyThree >= easyTwo }
   }
   "EasyDistance.min()" should "do the right thing" in {
     assertResult(easyOne, "when less") { EasyDistance.min(easyOne, easyTwo) }
@@ -34,15 +44,25 @@ class DistanceSpec extends FlatSpec {
   val realTwo = RealDistance(two)
   val realThree = RealDistance(three)
 
-  "RealDistance.lessThan()" should "do the right thing" in {
-    assertResult(true, "when is actually less") { realOne.lessThan(realTwo) }
-    assertResult(false, "when is actually equal") { realTwo.lessThan(realTwo) }
-    assertResult(false, "when is actually greater") { realThree.lessThan(realTwo) }
+  "RealDistance.<()" should "do the right thing" in {
+    assertResult(true, "when is actually less") { realOne < realTwo }
+    assertResult(false, "when is actually equal") { realTwo < realTwo }
+    assertResult(false, "when is actually greater") { realThree < realTwo }
   }
-  "RealDistance.lessEqualThan()" should "do the right thing" in {
-    assertResult(true, "when is actually less") { realOne.lessEqualThan(realTwo) }
-    assertResult(true, "when is actually equal") { realTwo.lessEqualThan(realTwo) }
-    assertResult(false, "when is actually greater") { realThree.lessEqualThan(realTwo) }
+  "RealDistance.>()" should "do the right thing" in {
+    assertResult(false, "when is actually less") { realOne > realTwo }
+    assertResult(false, "when is actually equal") { realTwo > realTwo }
+    assertResult(true, "when is actually greater") { realThree > realTwo }
+  }
+  "RealDistance.<=()" should "do the right thing" in {
+    assertResult(true, "when is actually less") { realOne <= realTwo }
+    assertResult(true, "when is actually equal") { realTwo <= realTwo }
+    assertResult(false, "when is actually greater") { realThree <= realTwo }
+  }
+  "RealDistance.>=()" should "do the right thing" in {
+    assertResult(false, "when is actually less") { realOne >= realTwo }
+    assertResult(true, "when is actually equal") { realTwo >= realTwo }
+    assertResult(true, "when is actually greater") { realThree >= realTwo }
   }
   "RealDistance.min()" should "do the right thing" in {
     assertResult(realOne, "when less") { RealDistance.min(realOne, realTwo) }

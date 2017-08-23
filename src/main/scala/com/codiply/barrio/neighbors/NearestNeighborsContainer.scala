@@ -50,7 +50,7 @@ object NearestNeighborsContainer {
               loop(ns1, ns2, n1 +: mergedNeighborsReversed, kRemaining - 1)
             }
             else {
-              if (n1.distance.lessEqualThan(n2.distance)) {
+              if (n1.distance <= n2.distance) {
                 loop(ns1, neighbors2, n1 +: mergedNeighborsReversed, kRemaining - 1)
               } else {
                 loop(neighbors1, ns2, n2 +: mergedNeighborsReversed, kRemaining - 1)
