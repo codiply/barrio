@@ -4,15 +4,16 @@ import org.scalatest.FlatSpec
 
 import com.codiply.barrio.geometry.EasyDistance
 import com.codiply.barrio.geometry.Point
+import com.codiply.barrio.geometry.Point.Coordinates
 import com.codiply.barrio.neighbors.NearestNeighbor
 import com.codiply.barrio.neighbors.NearestNeighborsContainer
 
 class NearestNeighborsContainerSpec extends FlatSpec {
-  val point1 = Point("point-1", List(1.0), "data-1")
-  val point2 = Point("point-2", List(2.0), "data-2")
-  val point3 = Point("point-3", List(3.0), "data-3")
-  val point4 = Point("point-4", List(4.0), "data-4")
-  val point5 = Point("point-5", List(5.0), "data-5")
+  val point1 = Point("point-1", Coordinates(1.0), "data-1")
+  val point2 = Point("point-2", Coordinates(2.0), "data-2")
+  val point3 = Point("point-3", Coordinates(3.0), "data-3")
+  val point4 = Point("point-4", Coordinates(4.0), "data-4")
+  val point5 = Point("point-5", Coordinates(5.0), "data-5")
 
   val distanceFunc = (p: Point) => EasyDistance(p.location.head * p.location.head)
 

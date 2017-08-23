@@ -11,6 +11,8 @@ final object Point {
   type Coordinates = List[Double]
 
   final object Coordinates {
+    def apply(doubles: Double*): Coordinates = doubles.toList
+
     def innerProduct(x: Coordinates, y: Coordinates): Double = x.zip(y).map { t => t._1 * t._2 }.sum
     def subtract(x: Coordinates, y: Coordinates): Coordinates = x.zip(y).map { t => t._1 - t._2 }
     def add(x: Coordinates, y: Coordinates): Coordinates = x.zip(y).map { t => t._1 + t._2 }

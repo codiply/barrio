@@ -12,7 +12,7 @@ class PointLoaderSpec extends FlatSpec with MockFactory {
 
   val coordinatesParserNotToBeCalled = (input: String) => {
     assert(false, s"the coordinates parser was used")
-    Some(List.empty)
+    Some(Coordinates())
   }
 
   "PointLoader.createCoordinatesParser returns a parser that" should
@@ -38,7 +38,7 @@ class PointLoaderSpec extends FlatSpec with MockFactory {
     val dimensions = 2
     val input = "1.0, 2.0"
     val parse = PointLoader.createCoordinatesParser(dimensions, coordinateSeparator)
-    val expected = Some(List(1.0, 2.0))
+    val expected = Some(Coordinates(1.0, 2.0))
     assert(parse(input) == expected)
   }
 
@@ -63,7 +63,7 @@ class PointLoaderSpec extends FlatSpec with MockFactory {
   }
   it should "return the expected results for input with id and coordinates" in {
     val id = "some-id"
-    val coordinates = List(1.0,2.0,3.0)
+    val coordinates = Coordinates(1.0,2.0,3.0)
     val coordinatesString = coordinates.mkString(coordinateSeparator)
     val input = s"$id$separator$coordinatesString"
 
@@ -80,7 +80,7 @@ class PointLoaderSpec extends FlatSpec with MockFactory {
   }
   it should "return the expected results for input with id, coordinates and additional data" in {
     val id = "some-id"
-    val coordinates = List(1.0,2.0,3.0)
+    val coordinates = Coordinates(1.0,2.0,3.0)
     val coordinatesString = coordinates.mkString(coordinateSeparator)
     val data = "some-data"
     val input = s"$id$separator$coordinatesString$separator$data"
@@ -98,7 +98,7 @@ class PointLoaderSpec extends FlatSpec with MockFactory {
   }
   it should "trim whitespace before parsing" in {
     val id = "some-id"
-    val coordinates = List(1.0,2.0,3.0)
+    val coordinates = Coordinates(1.0,2.0,3.0)
     val coordinatesString = coordinates.mkString(coordinateSeparator)
     val data = "some-data"
     val input = s"  $id   $separator $coordinatesString$separator $data  "

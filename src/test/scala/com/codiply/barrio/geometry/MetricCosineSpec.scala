@@ -18,28 +18,28 @@ class MetricCosineSpec extends FlatSpec {
 
   val metric = Metric.cosine
 
-  val origin = List(0.0, 0.0, 0.0)
+  val origin = Coordinates(0.0, 0.0, 0.0)
 
-  val i = List(2.0, 0.0, 0.0, 0.0)
-  val j = List(0.0, 3.0, 0.0, 0.0)
-  val k = List(0.0, 0.0, 4.0, 0.0)
-  val l = List(0.0, 0.0, 0.0, 5.0)
+  val i = Coordinates(2.0, 0.0, 0.0, 0.0)
+  val j = Coordinates(0.0, 3.0, 0.0, 0.0)
+  val k = Coordinates(0.0, 0.0, 4.0, 0.0)
+  val l = Coordinates(0.0, 0.0, 0.0, 5.0)
 
   val basis = List(i, j, k, l)
 
-  val ij = List(2.0, 2.0, 0.0, 0.0)
-  val ik = List(3.0, 0.0, 3.0, 0.0)
-  val il = List(4.0, 0.0, 0.0, 4.0)
-  val jk = List(0.0, 5.0, 5.0, 0.0)
-  val jl = List(0.0, 5.0, 0.0, 5.0)
-  val kl = List(0.0, 0.0, 6.0, 6.0)
+  val ij = Coordinates(2.0, 2.0, 0.0, 0.0)
+  val ik = Coordinates(3.0, 0.0, 3.0, 0.0)
+  val il = Coordinates(4.0, 0.0, 0.0, 4.0)
+  val jk = Coordinates(0.0, 5.0, 5.0, 0.0)
+  val jl = Coordinates(0.0, 5.0, 0.0, 5.0)
+  val kl = Coordinates(0.0, 0.0, 6.0, 6.0)
 
   val combinations = List(ij, ik, il, jk, jl, kl)
 
-  val a = List(1.0, 2.0, 3.0, 4.0)
-  val b = List(3.0, 1.0, 4.0, 2.0)
-  val c = List(-2.0, 5.0, -1.0, 3.0)
-  val d = List(5.0, -3.0, 1.0, -2.0)
+  val a = Coordinates(1.0, 2.0, 3.0, 4.0)
+  val b = Coordinates(3.0, 1.0, 4.0, 2.0)
+  val c = Coordinates(-2.0, 5.0, -1.0, 3.0)
+  val d = Coordinates(5.0, -3.0, 1.0, -2.0)
 
   "easyDistance" should "return the right distance for basis vectors" in {
     for {
@@ -109,16 +109,16 @@ class MetricCosineSpec extends FlatSpec {
   }
   it should "return the expected result (cases 1)" in {
     val expectedEasyDistance = 0.25
-    val c1 = List(2.0, 0.0, 0.0, 0.0)
-    val c2 = List(0.0, 0.0, 3.0, 0.0)
+    val c1 = Coordinates(2.0, 0.0, 0.0, 0.0)
+    val c2 = Coordinates(0.0, 0.0, 3.0, 0.0)
     val plane = PartitioningPlane(c1, c2)
     val distance = metric.easyDistanceToPlane(plane)
     assert(distance.isDefined)
     val points = List(
-      List(5.0, 5.0, 0.0, 0.0),
-      List(6.0, 0.0, 0.0, 6.0),
-      List(0.0, 7.0, 7.0, 0.0),
-      List(0.0, 0.0, 8.0, 8.0))
+      Coordinates(5.0, 5.0, 0.0, 0.0),
+      Coordinates(6.0, 0.0, 0.0, 6.0),
+      Coordinates(0.0, 7.0, 7.0, 0.0),
+      Coordinates(0.0, 0.0, 8.0, 8.0))
     points.foreach(p => {
       assert(distance.get(p).value === expectedEasyDistance +- eps,
         "for location " + pretty(p))
@@ -126,14 +126,14 @@ class MetricCosineSpec extends FlatSpec {
   }
   it should "return the expected result (cases 2)" in {
     val expectedEasyDistance = 1.0 / 6.0
-    val c1 = List(0.0, 0.0, 0.0, 2.0)
-    val c2 = List(0.0, 3.0, 0.0, 0.0)
+    val c1 = Coordinates(0.0, 0.0, 0.0, 2.0)
+    val c2 = Coordinates(0.0, 3.0, 0.0, 0.0)
     val plane = PartitioningPlane(c1, c2)
     val distance = metric.easyDistanceToPlane(plane)
     assert(distance.isDefined)
     val points = List(
-      List(2.0, 2.0, 2.0, 0.0),
-      List(3.0, 0.0, 3.0, 3.0))
+      Coordinates(2.0, 2.0, 2.0, 0.0),
+      Coordinates(3.0, 0.0, 3.0, 3.0))
     points.foreach(p => {
       assert(distance.get(p).value === expectedEasyDistance +- eps,
         "for location " + pretty(p))
@@ -141,12 +141,12 @@ class MetricCosineSpec extends FlatSpec {
   }
   it should "return the expected result (case 3)" in {
     val expectedEasyDistance = 0.03
-    val c1 = List(1.0, 2.0, 2.0, 0.0)
-    val c2 = List(2.0, 1.0, 0.0, 2.0)
+    val c1 = Coordinates(1.0, 2.0, 2.0, 0.0)
+    val c2 = Coordinates(2.0, 1.0, 0.0, 2.0)
     val plane = PartitioningPlane(c1, c2)
     val distance = metric.easyDistanceToPlane(plane)
     assert(distance.isDefined)
-    val p = List(2.0, 1.0, 3.0, 4.0)
+    val p = Coordinates(2.0, 1.0, 3.0, 4.0)
     assert(distance.get(p).value === expectedEasyDistance +- eps)
   }
   it should "return None if the two normalised centroids are equal case" in {

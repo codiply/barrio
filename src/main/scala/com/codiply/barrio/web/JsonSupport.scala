@@ -12,16 +12,16 @@ object JsonSupport {
   import com.codiply.barrio.neighbors.NodeStats
   import com.codiply.barrio.neighbors.TreeStats
 
-  final case class NeighborJson(id: String, distance: Double, data: Option[String], location: Option[List[Double]])
+  final case class NeighborJson(id: String, distance: Double, data: Option[String], location: Option[Seq[Double]])
   final case class NeighborsRequestJson(
       k: Int,
-      location: Option[List[Double]],
+      location: Option[Seq[Double]],
       locationId: Option[String],
       distanceThreshold: Option[Double],
       includeData: Option[Boolean],
       includeLocation: Option[Boolean],
       timeout: Option[Int])
-  final case class NeighborsResponseJson(count: Int, neighbors: Vector[NeighborJson])
+  final case class NeighborsResponseJson(count: Int, neighbors: Seq[NeighborJson])
 
   object Mapping {
     def mapMemoryStats(stats: MemoryStats): MemoryStatsJson =
@@ -85,7 +85,7 @@ object JsonSupport {
 
   final case class ClusterStatsJson(nodes: Map[String, NodeStatsJson])
 
-  final case class ClusterHealthJson(errors: List[String])
+  final case class ClusterHealthJson(errors: Seq[String])
 }
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {

@@ -10,13 +10,14 @@ import akka.actor.Props
 
 import com.codiply.barrio.geometry.EasyDistance
 import com.codiply.barrio.geometry.Point
+import com.codiply.barrio.geometry.Point.Coordinates
 import com.codiply.barrio.neighbors.NearestNeighborsContainer
 
 object NeighborhoodForestSearchActor {
   def props(
       responseRecipient: ActorRef,
       treesToSearch: List[ActorRef],
-      location: List[Double],
+      location: Coordinates,
       k: Int,
       distanceThreshold: EasyDistance,
       includeData: Boolean,
@@ -29,7 +30,7 @@ object NeighborhoodForestSearchActor {
 object NeighborhoodForestSearchActorProtocol {
   final object DoSendResponse
   final case class NeighborsSearchTreeRequest(
-      location: List[Double], k: Int, includeData: Boolean, includeLocation: Boolean, distanceThreshold: EasyDistance)
+      location: Coordinates, k: Int, includeData: Boolean, includeLocation: Boolean, distanceThreshold: EasyDistance)
   final case class NeighborsSearchLeafResponse(container: NearestNeighborsContainer)
   final case class CandidateSubTree(root: ActorRef, minDistance: EasyDistance)
   final case class EnqueueCandidate(candidate: CandidateSubTree)
@@ -38,7 +39,7 @@ object NeighborhoodForestSearchActorProtocol {
 class NeighborhoodForestSearchActor(
       responseRecipient: ActorRef,
       treesToSearch: List[ActorRef],
-      location: List[Double],
+      location: Coordinates,
       k: Int,
       distanceThreshold: EasyDistance,
       includeData: Boolean,

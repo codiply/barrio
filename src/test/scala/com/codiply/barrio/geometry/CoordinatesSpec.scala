@@ -7,11 +7,11 @@ import com.codiply.barrio.geometry.Point.Coordinates
 class CoordinatesSpec extends FlatSpec {
   private def pretty(c: Coordinates): String = c.mkString("(", ",", ")")
 
-  val zero = List(0.0, 0.0, 0.0)
+  val zero = Coordinates(0.0, 0.0, 0.0)
 
-  val i = List(1.0, 0.0, 0.0)
-  val j = List(0.0, 1.0, 0.0)
-  val k = List(0.0, 0.0, 1.0)
+  val i = Coordinates(1.0, 0.0, 0.0)
+  val j = Coordinates(0.0, 1.0, 0.0)
+  val k = Coordinates(0.0, 0.0, 1.0)
   val basis = List(i, j, k)
 
   "Coordinates.add()" should "return the coordinates when adding zero" in {
