@@ -82,7 +82,7 @@ class NeighborhoodForestSearchActor(
   }
 
   private def pruneQueue(distanceUpperBound: EasyDistance): Unit =
-    prioritisedSubTrees = prioritisedSubTrees.filter(tree => tree.minDistance <= distanceUpperBound)
+    prioritisedSubTrees = prioritisedSubTrees.takeWhile(tree => tree.minDistance <= distanceUpperBound)
 
   private def updateDistanceThreshold(distanceUpperBound: EasyDistance): Unit =
     currentDistanceThreshold = EasyDistance.min(currentDistanceThreshold, distanceUpperBound)
