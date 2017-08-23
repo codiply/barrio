@@ -54,7 +54,7 @@ object PointLoader {
       val pieces = input.split(separator)
       if (pieces.size == dimensions) {
         try {
-          Some(pieces.map(_.toDouble).toList)
+          Some(Coordinates(pieces.map(_.toDouble): _*))
         } catch {
           case e: Exception =>
             // TODO: log error

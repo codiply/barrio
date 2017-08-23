@@ -18,11 +18,11 @@ class MetricEuclideanSpec extends FlatSpec {
 
   val metric = Metric.euclidean
 
-  val origin = List(0.0, 0.0, 0.0)
+  val origin = Coordinates(0.0, 0.0, 0.0)
 
-  val i = List(1.0, 0.0, 0.0)
-  val j = List(0.0, 1.0, 0.0)
-  val k = List(0.0, 0.0, 1.0)
+  val i = Coordinates(1.0, 0.0, 0.0)
+  val j = Coordinates(0.0, 1.0, 0.0)
+  val k = Coordinates(0.0, 0.0, 1.0)
   val basis = List(i, j, k)
 
   "easyDistance for base vector" should "return 1.0 for distance from origin" in {
@@ -43,8 +43,8 @@ class MetricEuclideanSpec extends FlatSpec {
 
   "easyDistanceToPlane" should "be equal for the two centroids" in {
     for {
-      c1 <- List(List(1.0, 2.0, 3.0), List(-3.0, -2.0, -1.0))
-      c2 <- List(List(-1.0, -2.0, -3.0), List(3.0, -2.0, -1.0))
+      c1 <- List(Coordinates(1.0, 2.0, 3.0), Coordinates(-3.0, -2.0, -1.0))
+      c2 <- List(Coordinates(-1.0, -2.0, -3.0), Coordinates(3.0, -2.0, -1.0))
     } {
       val plane = PartitioningPlane(c1, c2)
       val distance = metric.easyDistanceToPlane(plane)
@@ -54,8 +54,8 @@ class MetricEuclideanSpec extends FlatSpec {
   }
   it should "be zero for the mid-point between the centroids" in {
     for {
-      c1 <- List(List(1.0, 2.0, 3.0), List(-3.0, -2.0, -1.0))
-      c2 <- List(List(-1.0, -2.0, -3.0), List(3.0, -2.0, -1.0))
+      c1 <- List(Coordinates(1.0, 2.0, 3.0), Coordinates(-3.0, -2.0, -1.0))
+      c2 <- List(Coordinates(-1.0, -2.0, -3.0), Coordinates(3.0, -2.0, -1.0))
     } {
       val plane = PartitioningPlane(c1, c2)
       val distance = metric.easyDistanceToPlane(plane)
@@ -65,19 +65,19 @@ class MetricEuclideanSpec extends FlatSpec {
     }
   }
   it should "give the right result" in {
-    val c1 = List(-1.0, 1.0)
-    val c2 = List(1.0, -1.0)
+    val c1 = Coordinates(-1.0, 1.0)
+    val c2 = Coordinates(1.0, -1.0)
     val plane = PartitioningPlane(c1, c2)
     val distance = metric.easyDistanceToPlane(plane)
     assert(distance.isDefined)
-    assert(distance.get(List(2.0, 2.0)) == EasyDistance(0.0), "case 1")
-    assert(distance.get(List(1.0, 0.0)) == EasyDistance(0.5), "case 2")
-    assert(distance.get(List(0.0, 1.0)) == EasyDistance(0.5), "case 3")
-    assert(distance.get(List(1.0, 2.0)) == EasyDistance(0.5), "case 4")
-    assert(distance.get(List(2.0, 1.0)) == EasyDistance(0.5), "case 5")
+    assert(distance.get(Coordinates(2.0, 2.0)) == EasyDistance(0.0), "case 1")
+    assert(distance.get(Coordinates(1.0, 0.0)) == EasyDistance(0.5), "case 2")
+    assert(distance.get(Coordinates(0.0, 1.0)) == EasyDistance(0.5), "case 3")
+    assert(distance.get(Coordinates(1.0, 2.0)) == EasyDistance(0.5), "case 4")
+    assert(distance.get(Coordinates(2.0, 1.0)) == EasyDistance(0.5), "case 5")
   }
   it should "not be defined for two centroids with the same coordinates" in {
-    for (c <- List(List(1.0, 2.0, 3.0), List(-3.0, -2.0, -1.0))) {
+    for (c <- List(Coordinates(1.0, 2.0, 3.0), Coordinates(-3.0, -2.0, -1.0))) {
       val plane = PartitioningPlane(c, c)
       val distance = metric.easyDistanceToPlane(plane)
       assert(!distance.isDefined, "for centroid " + pretty(c))
@@ -135,7 +135,7 @@ class MetricEuclideanSpec extends FlatSpec {
       x <- values
       y <- values
       z <- values
-      p = List(x, y, z)
+      p = Coordinates(x, y, z)
     } {
       assert(metric.areValidCoordinates(p), "for point " + pretty(p))
     }

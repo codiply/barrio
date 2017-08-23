@@ -12,6 +12,7 @@ import org.scalatest.WordSpecLike
 
 import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
+import com.codiply.barrio.geometry.Point.Coordinates
 import com.codiply.barrio.helpers.Random
 import com.codiply.barrio.neighbors.NeighborhoodConfig
 import com.codiply.barrio.neighbors.forests.NeighborhoodTreeActor
@@ -38,10 +39,10 @@ class NeighborhoodTreeActorSpec extends TestKit(ActorSystem("NeighborhoodTreeAct
     val treesPerNode = 1
     val treeStartingDepth = 11
 
-    val point0 = Point("point0", List(0.0, 0.0), "data-0")
-    val point1 = Point("point1", List(1.0, 0.0), "data-1")
-    val point2 = Point("point2", List(1.0, 1.0), "data-2")
-    val point3 = Point("point3", List(0.0, 1.0), "data-3")
+    val point0 = Point("point0", Coordinates(0.0, 0.0), "data-0")
+    val point1 = Point("point1", Coordinates(1.0, 0.0), "data-1")
+    val point2 = Point("point2", Coordinates(1.0, 1.0), "data-2")
+    val point3 = Point("point3", Coordinates(0.0, 1.0), "data-3")
 
     def createConfig(maxPointsPerLeaf: Int): NeighborhoodConfig = NeighborhoodConfig(
       defaultRequestTimeoutMilliseconds = NeighborhoodConfig.Defaults.defaultRequestTimeoutMilliseconds,

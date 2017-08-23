@@ -4,6 +4,7 @@ import scala.concurrent.duration.FiniteDuration
 
 import com.codiply.barrio.geometry.EasyDistance
 import com.codiply.barrio.geometry.Point
+import com.codiply.barrio.geometry.Point.Coordinates
 
 object ActorProtocol {
   sealed trait GetNeighborsRequest
@@ -15,7 +16,7 @@ object ActorProtocol {
       includeLocation: Boolean,
       timeoutMilliseconds: Int) extends GetNeighborsRequest
   final case class GetNeighborsRequestByLocation(
-      location: List[Double],
+      location: Coordinates,
       k: Int,
       distanceThreshold: EasyDistance,
       includeData: Boolean,

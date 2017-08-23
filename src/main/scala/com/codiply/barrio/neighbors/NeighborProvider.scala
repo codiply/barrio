@@ -10,13 +10,13 @@ case class Neighbor(id: String, distance: RealDistance, data: Option[String], lo
 
 trait NeighborProvider {
   def getNeighbors(
-      location: Option[List[Double]],
+      location: Option[Seq[Double]],
       locationId: Option[String],
       k: Int,
       distanceThreshold: Option[RealDistance],
       includeData: Boolean,
       includeLocation: Boolean,
-      timeoutMilliseconds: Option[Int]): Future[Vector[Neighbor]]
+      timeoutMilliseconds: Option[Int]): Future[Seq[Neighbor]]
   def getHealth(): Future[ClusterHealth]
   def getStats(doGarbageCollect: Boolean): Future[ClusterStats]
 }

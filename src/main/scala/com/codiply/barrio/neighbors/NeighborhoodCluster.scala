@@ -57,13 +57,13 @@ class NeighborhoodCluster (
       NeighborhoodReceptionistActor.props(locationIndexActorRouter, nodeActorRouter), "receptionist")
 
   def getNeighbors(
-    location: Option[List[Double]],
+    location: Option[Seq[Double]],
     locationId: Option[String],
     k: Int,
     distanceThreshold: Option[RealDistance],
     includeData: Boolean,
     includeLocation: Boolean,
-    timeoutMilliseconds: Option[Int]): Future[Vector[Neighbor]] = {
+    timeoutMilliseconds: Option[Int]): Future[Seq[Neighbor]] = {
     val effectiveTimeoutMilliseconds = config.getEffectiveTimeoutMilliseconds(timeoutMilliseconds)
     val effectiveDistanceThreshold = distanceThreshold.getOrElse(RealDistance.zero)
     (location, locationId) match {
@@ -89,7 +89,7 @@ class NeighborhoodCluster (
   }
 
   private def getNeighborsByLocation(
-      location: List[Double],
+      location: Seq[Double],
       k: Int,
       distanceThreshold: RealDistance,
       includeData: Boolean,
@@ -99,7 +99,7 @@ class NeighborhoodCluster (
       metric.toEasyDistance(distanceThreshold) match {
         case Some(easyDistanceThreshold) => {
           val request = GetNeighborsRequestByLocation(
-            location, k , easyDistanceThreshold, includeData = includeData,
+            Coordinates(location: _*), k , easyDistanceThreshold, includeData = includeData,
             includeLocation = includeLocation, timeoutMilliseconds)
           getNeighborsWithRequest(request, timeoutMilliseconds)
         }
