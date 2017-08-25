@@ -27,3 +27,6 @@ assemblyOutputPath in assembly := file("target/barrio/barrio.jar")
 mainClass in assembly := Some("com.codiply.barrio.Main")
 
 addCommandAlias("ss", ";scalastyle;test:scalastyle")
+
+// A stage step is needed when deploying to demo app in Heroku
+addCommandAlias("stage", "assembly")

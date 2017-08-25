@@ -165,3 +165,23 @@ All settings used in getting neighbors by location apply here too.
 You can get cluster statistics via a `GET` request to `/stats/`.
 
 You can check for errors and discrepancies between the nodes in the cluster via a `GET` request to `/health/`.
+
+## Demo Heroku App
+
+You can try the API on [this demo app](http://barrio-movies.herokuapp.com/) on [Heroku](http://www.heroku.com). 
+The input data are the item factors produced by the ALS algorithm on the [MovieLens dataset](https://movielens.org/). 
+The item factors are features for each movie in a 16-dimensional space. They allow us to search for similar movies.
+The id used is the [IMDB id](http://www.imdb.com/) of a movie 
+(it is the numeric part at the end of the url for a specific movie).
+
+To perform a search make a `POST` request to [http://barrio-movies.herokuapp.com/neighbors](http://barrio-movies.herokuapp.com/) like this
+
+    {
+      "locationId": "0068646",
+      "k": 20,
+      "distanceThreshold": 0.03,
+      "includeLocation": false,
+      "includeData": true
+    }
+
+

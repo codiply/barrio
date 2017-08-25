@@ -1,0 +1,1 @@
+web: export BARRIO_WEB_API_PORT=$PORT && java -jar target/barrio/barrio.jar --isUrl -f https://media.githubusercontent.com/media/codiply/barrio-test-data/master/movielens-item-factors/rank-16.txt -d 16 -m cosine --separator "@~@"
