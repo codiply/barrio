@@ -21,7 +21,7 @@ script:
   - docker images
   - docker run -d -v $TRAVIS_BUILD_DIR/target/barrio/:/barrio/ -p 18001:18001 barrio
   - sleep 60
-  - curl http://localhost:18001/stats
+  - $TRAVIS_BUILD_DIR/travis/print-pretty-stats.py
   - $JMETER_HOME/bin/jmeter -n -t $TRAVIS_BUILD_DIR/travis/jmeter.jmx
 deploy:
   provider: s3
