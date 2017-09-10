@@ -75,7 +75,7 @@ class NeighborhoodTreeActorSpec extends TestKit(ActorSystem("NeighborhoodTreeAct
       assert(stats.stats.depth == expectedDepth, "check depth")
       assert(stats.stats.pointCount == points.length, "check point count")
 
-      parentProbe.expectMsg(timeout, TreeInitialised)
+      parentProbe.expectMsg(timeout, TreeInitialised(rootTreeName))
     }
     "send the expected messages when it is initialised with one point" in {
       val statsProbe = TestProbe()
@@ -99,7 +99,7 @@ class NeighborhoodTreeActorSpec extends TestKit(ActorSystem("NeighborhoodTreeAct
       assert(stats.stats.depth == expectedDepth, "check depth")
       assert(stats.stats.pointCount == points.length, "check point count")
 
-      parentProbe.expectMsg(timeout, TreeInitialised)
+      parentProbe.expectMsg(timeout, TreeInitialised(rootTreeName))
     }
     "send the expected messages when it is initialised with two points (max points per leaf 1)" in {
       val statsProbe = TestProbe()
@@ -129,7 +129,7 @@ class NeighborhoodTreeActorSpec extends TestKit(ActorSystem("NeighborhoodTreeAct
         }
       }
 
-      parentProbe.expectMsg(timeout, TreeInitialised)
+      parentProbe.expectMsg(timeout, TreeInitialised(rootTreeName))
     }
   }
 }
