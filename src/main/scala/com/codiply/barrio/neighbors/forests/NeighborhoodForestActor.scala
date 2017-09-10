@@ -56,10 +56,11 @@ class NeighborhoodForestActor(
   var initialisedTrees: List[ActorRef] = Nil
 
   def receive: Receive = {
-    case TreeInitialised => {
+    case msg @ TreeInitialised(rootTreeName) => {
       if (trees.contains(sender)) {
         initialisedTreesCount += 1
         initialisedTrees = sender +: initialisedTrees
+        statsActor ! msg
       }
     }
     case request: GetNeighborsRequestByLocation => {
@@ -73,36 +74,39 @@ class NeighborhoodForestActor(
         sender ! NearestNeighborsContainer.empty(request.k)
       }
     }
-    case GetNodeStatsRequest(timeoutMilliseconds, doGarbageCollect) => {
-      implicit val askTimeout = Timeout(timeoutMilliseconds.milliseconds)
-
-      val runtime = Runtime.getRuntime
-
-      if (doGarbageCollect) {
-        runtime.gc()
-      }
-
-      val mb = 1024 * 1024
-      val freeMemoryMB = runtime.freeMemory.toDouble / mb;
-      val totalMemoryMB = runtime.totalMemory.toDouble / mb;
-      val maxMemoryMB = runtime.maxMemory.toDouble /mb;
-
-      val treeStatsResponse = (statsActor ? GetNeighborhoodTreeStatsRequest).mapTo[GetNeighborhoodTreeStatsResponse]
-
+    case GetNodeStatsRequest(timeoutMilliseconds, doGarbageCollect) =>
       val originalSender = sender
+      sendNodeStats(timeoutMilliseconds, originalSender, doGarbageCollect)
+  }
 
-      treeStatsResponse onSuccess { case GetNeighborhoodTreeStatsResponse(treeStats) =>
-        originalSender ! GetNodeStatsResponse(name, NodeStats(
-            version = config.version,
-            dimensions = config.dimensions,
-            memory = MemoryStats(
-                freeMemoryMB = freeMemoryMB,
-                totalMemoryMB = totalMemoryMB,
-                 maxMemoryMB = maxMemoryMB,
-              usedMemoryMB = totalMemoryMB - freeMemoryMB),
-            trees = treeStats
+  private def sendNodeStats(timeoutMilliseconds: Int, recipient: ActorRef, doGarbageCollect: Boolean): Unit = {
+    implicit val askTimeout = Timeout(timeoutMilliseconds.milliseconds)
+
+    val runtime = Runtime.getRuntime
+
+    if (doGarbageCollect) {
+      runtime.gc()
+    }
+
+    val mb = 1024 * 1024
+    val freeMemoryMB = runtime.freeMemory.toDouble / mb;
+    val totalMemoryMB = runtime.totalMemory.toDouble / mb;
+    val maxMemoryMB = runtime.maxMemory.toDouble /mb;
+
+    val treeStatsResponse = (statsActor ? GetNeighborhoodTreeStatsRequest).mapTo[GetNeighborhoodTreeStatsResponse]
+
+    treeStatsResponse onSuccess { case GetNeighborhoodTreeStatsResponse(treeStats) =>
+      recipient ! GetNodeStatsResponse(name, NodeStats(
+          initialised = !treeStats.values.exists(!_.initialised),
+          version = config.version,
+          dimensions = config.dimensions,
+          memory = MemoryStats(
+            freeMemoryMB = freeMemoryMB,
+            totalMemoryMB = totalMemoryMB,
+            maxMemoryMB = maxMemoryMB,
+            usedMemoryMB = totalMemoryMB - freeMemoryMB),
+          trees = treeStats
         ))
-      }
     }
   }
 }

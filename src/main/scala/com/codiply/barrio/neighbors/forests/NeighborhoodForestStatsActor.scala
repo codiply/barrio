@@ -20,6 +20,10 @@ class NeighborhoodForestStatsActor extends Actor {
       val previousStats = treeStatsContainers.getOrElse(leafStats.treeName, TreeStatsContainer.empty)
       val newStats = previousStats.add(leafStats.stats)
       treeStatsContainers = treeStatsContainers + (leafStats.treeName -> newStats)
+    case TreeInitialised(rootTreeName) =>
+      val previousStats = treeStatsContainers.getOrElse(rootTreeName, TreeStatsContainer.empty)
+      val newStats = previousStats.setInitialised
+      treeStatsContainers = treeStatsContainers + (rootTreeName -> newStats)
     case GetNeighborhoodTreeStatsRequest =>
       sender ! GetNeighborhoodTreeStatsResponse(treeStatsContainers.mapValues(_.toStats)
           // This is needed because the result of mapValues is not serializable

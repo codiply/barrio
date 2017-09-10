@@ -40,6 +40,7 @@ object JsonSupport {
 
     def mapTreeStats(stats: TreeStats): TreeStatsJson =
       TreeStatsJson(
+        initialised = stats.initialised,
         leafs = stats.leafs,
         points = stats.points,
         pointsPerLeaf = mapIntegerQuantityStats(stats.pointsPerLeaf),
@@ -47,13 +48,16 @@ object JsonSupport {
 
     def mapNodeStats(stats: NodeStats): NodeStatsJson =
       NodeStatsJson(
+        initialised = stats.initialised,
         version = stats.version,
         dimensions = stats.dimensions,
         memory = mapMemoryStats(stats.memory),
         trees = stats.trees.mapValues(mapTreeStats))
 
     def mapClusterStats(stats: ClusterStats): ClusterStatsJson =
-      ClusterStatsJson(nodes = stats.nodes.mapValues(mapNodeStats))
+      ClusterStatsJson(
+          initialised = stats.initialised,
+          nodes = stats.nodes.mapValues(mapNodeStats))
 
     def mapClusterHealth(health: ClusterHealth): ClusterHealthJson =
       ClusterHealthJson(errors = health.errors)
@@ -72,18 +76,22 @@ object JsonSupport {
     standardError: Double)
 
   final case class TreeStatsJson(
+    initialised: Boolean,
     leafs: BigInt,
     points: BigInt,
     pointsPerLeaf: LongQuantityStatsJson,
     depth: LongQuantityStatsJson)
 
   final case class NodeStatsJson(
+    initialised: Boolean,
     version: String,
     dimensions: Int,
     memory: MemoryStatsJson,
     trees: Map[String, TreeStatsJson])
 
-  final case class ClusterStatsJson(nodes: Map[String, NodeStatsJson])
+  final case class ClusterStatsJson(
+      initialised: Boolean,
+      nodes: Map[String, NodeStatsJson])
 
   final case class ClusterHealthJson(errors: Seq[String])
 }
@@ -96,8 +104,8 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val neighborsResponseFormat = jsonFormat2(NeighborsResponseJson)
   implicit val memoryStatsFormat = jsonFormat4(MemoryStatsJson)
   implicit val longQuantityStatsFormat = jsonFormat4(LongQuantityStatsJson)
-  implicit val treeStatsFormat = jsonFormat4(TreeStatsJson)
-  implicit val nodeStatsFormat = jsonFormat4(NodeStatsJson)
-  implicit val clusterStatsFormat = jsonFormat1(ClusterStatsJson)
+  implicit val treeStatsFormat = jsonFormat5(TreeStatsJson)
+  implicit val nodeStatsFormat = jsonFormat5(NodeStatsJson)
+  implicit val clusterStatsFormat = jsonFormat2(ClusterStatsJson)
   implicit val clusterHealthFormat = jsonFormat1(ClusterHealthJson)
 }

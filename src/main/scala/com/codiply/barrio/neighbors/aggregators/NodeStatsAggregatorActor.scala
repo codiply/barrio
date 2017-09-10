@@ -19,7 +19,10 @@ object NodeStatsAggregatorActor {
         val initialValue = Map.empty[String, NodeStats]
         val folder = (allNodeStats: Map[String, NodeStats], response: GetNodeStatsResponse) =>
           allNodeStats + (response.nodeName -> response.stats)
-        val mapper = (allNodeStats: Map[String, NodeStats]) => GetClusterStatsResponse(ClusterStats(allNodeStats))
+        val mapper = (allNodeStats: Map[String, NodeStats]) => {
+          val clusterInitialised = !allNodeStats.values.exists(!_.initialised)
+          GetClusterStatsResponse(ClusterStats(clusterInitialised, allNodeStats))
+        }
         AggregatorActor.props(responseRecipient, initialValue, folder, mapper, None, expectedNumberOfResponses, timeout)
       }
 }

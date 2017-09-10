@@ -112,7 +112,7 @@ class NeighborhoodTreeActor(
         }
       }
     }
-    case TreeInitialised => {
+    case TreeInitialised(rootTreeName) => {
       initialisedChildrenCount += 1
       if (initialisedChildrenCount == 2) signalTreeInitialised()
     }
@@ -132,7 +132,7 @@ class NeighborhoodTreeActor(
       metric.easyDistance(centroidLeft, location) < metric.easyDistance(centroidRight, location)
 
   private def signalTreeInitialised() = {
-    context.parent ! TreeInitialised
+    context.parent ! TreeInitialised(rootTreeName)
   }
 
   private def sendStats(points: List[Point]) = {
