@@ -23,6 +23,8 @@ object JsonSupport {
       timeout: Option[Int])
   final case class NeighborsResponseJson(count: Int, neighbors: Seq[NeighborJson])
 
+  final case class NeighborsErrorJson(error: String)
+
   object Mapping {
     def mapMemoryStats(stats: MemoryStats): MemoryStatsJson =
       MemoryStatsJson(
@@ -102,6 +104,7 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val neighborFormat = jsonFormat4(NeighborJson)
   implicit val neighborsRequestFormat = jsonFormat7(NeighborsRequestJson)
   implicit val neighborsResponseFormat = jsonFormat2(NeighborsResponseJson)
+  implicit val neighborsErrorFormat = jsonFormat1(NeighborsErrorJson)
   implicit val memoryStatsFormat = jsonFormat4(MemoryStatsJson)
   implicit val longQuantityStatsFormat = jsonFormat4(LongQuantityStatsJson)
   implicit val treeStatsFormat = jsonFormat5(TreeStatsJson)
