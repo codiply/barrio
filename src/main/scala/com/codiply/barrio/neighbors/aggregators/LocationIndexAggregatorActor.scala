@@ -6,6 +6,7 @@ import akka.actor.ActorRef
 import akka.actor.Props
 
 import com.codiply.barrio.generic.AggregatorActor
+import com.codiply.barrio.generic.AggregatorMapperContext
 import com.codiply.barrio.geometry.Point.Coordinates
 import com.codiply.barrio.neighbors.LocationIndexActorProtocol.GetLocationResponse
 
@@ -21,7 +22,7 @@ object LocationIndexAggregatorActor {
           } else {
             newResponse.location
           }
-        val mapper = (aggregate: Option[Coordinates]) => GetLocationResponse(aggregate)
+        val mapper = (aggregate: Option[Coordinates], mapperContext: AggregatorMapperContext) => GetLocationResponse(aggregate)
         val earlyTerminationCondition = Some((aggregate: Option[Coordinates]) => aggregate.isDefined)
         AggregatorActor.props(
             responseRecipient, initialValue, folder, mapper, earlyTerminationCondition, expectedNumberOfResponses, timeout)

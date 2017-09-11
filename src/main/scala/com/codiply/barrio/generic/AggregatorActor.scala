@@ -9,12 +9,17 @@ import akka.actor.ActorRef
 import akka.actor.Cancellable
 import akka.actor.Props
 
+case class AggregatorMapperContext(
+    timeoutReached: Boolean,
+    earlyTerminationConditionMet: Boolean,
+    earlyTerminationRequested: Boolean)
+
 object AggregatorActor {
   def props[TAggregate, TResponseIn: ClassTag, TResponseOut](
     responseRecipient: ActorRef,
     initialValue: TAggregate,
     folder: (TAggregate, TResponseIn) => TAggregate,
-    mapper: TAggregate => TResponseOut,
+    mapper: (TAggregate, AggregatorMapperContext) => TResponseOut,
     earlyTerminationCondition: Option[TAggregate => Boolean],
     expectedNumberOfResponses: Int,
     timeout: FiniteDuration
@@ -31,7 +36,7 @@ class AggregatorActor[TAggregate, TResponseIn: ClassTag, TResponseOut](
     responseRecipient: ActorRef,
     initialValue: TAggregate,
     folder: (TAggregate, TResponseIn) => TAggregate,
-    mapper: TAggregate => TResponseOut,
+    mapper: (TAggregate, AggregatorMapperContext) => TResponseOut,
     earlyTerminationCondition: Option[TAggregate => Boolean],
     expectedNumberOfResponses: Int,
     timeout: FiniteDuration) extends Actor {
@@ -46,7 +51,7 @@ class AggregatorActor[TAggregate, TResponseIn: ClassTag, TResponseOut](
   var timeoutCancellable: Option[Cancellable] = None
 
   if (expectedNumberOfResponses <= 0) {
-    sendAggregate()
+    sendAggregate(timeoutReached = false, earlyTerminationConditionMet = false)
   } else {
     timeoutCancellable = Some(context.system.scheduler.scheduleOnce(timeout, self, DoSendAggregate))
   }
@@ -57,11 +62,12 @@ class AggregatorActor[TAggregate, TResponseIn: ClassTag, TResponseOut](
     case incomingResponse: TResponseIn =>
       currentAggregateValue = folder(currentAggregateValue, incomingResponse)
       outstandingIncomingResponses -= 1
-      if (mustTerminateEarly(currentAggregateValue) || outstandingIncomingResponses <= 0) {
-        terminateAggregationEarly()
+      val earlyTerminationConditionMet = mustTerminateEarly(currentAggregateValue)
+      if (earlyTerminationConditionMet || outstandingIncomingResponses <= 0) {
+        terminateAggregation(conditionMet = earlyTerminationConditionMet)
       }
-    case DoSendAggregate => sendAggregate()
-    case TerminateAggregationEarly => terminateAggregationEarly()
+    case DoSendAggregate => sendAggregate(timeoutReached = true)
+    case TerminateAggregationEarly => terminateAggregation(requested = true)
     case CancelAggregation => cancelAggregation()
   }
 
@@ -70,13 +76,20 @@ class AggregatorActor[TAggregate, TResponseIn: ClassTag, TResponseOut](
     context.stop(self)
   }
 
-  private def terminateAggregationEarly() = {
+  private def terminateAggregation(conditionMet: Boolean = false, requested: Boolean = false) = {
     timeoutCancellable.foreach { _.cancel() }
-    sendAggregate()
+    sendAggregate(earlyTerminationConditionMet = conditionMet, earlyTerminationRequested = requested)
   }
 
-  private def sendAggregate() = {
-    val response = mapper(currentAggregateValue)
+  private def sendAggregate(
+      timeoutReached: Boolean = false,
+      earlyTerminationConditionMet: Boolean = false,
+      earlyTerminationRequested: Boolean = false) = {
+    val response = mapper(currentAggregateValue,
+        AggregatorMapperContext(
+            timeoutReached = timeoutReached,
+            earlyTerminationConditionMet = earlyTerminationConditionMet,
+            earlyTerminationRequested = earlyTerminationRequested))
     responseRecipient ! response
     context.stop(self)
   }
