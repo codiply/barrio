@@ -64,7 +64,7 @@ class NeighborhoodCluster (
     distanceThreshold: Option[RealDistance],
     includeData: Boolean,
     includeLocation: Boolean,
-    timeoutMilliseconds: Option[Int]): Future[Either[NeighborsRequestError, Seq[Neighbor]]] = {
+    timeoutMilliseconds: Option[Int]): Future[Either[NeighborsRequestError, NeighborsResponse]] = {
     val effectiveTimeoutMilliseconds = config.getEffectiveTimeoutMilliseconds(timeoutMilliseconds)
     val effectiveDistanceThreshold = distanceThreshold.getOrElse(RealDistance.zero)
     (location, locationId) match {
@@ -95,14 +95,14 @@ class NeighborhoodCluster (
       distanceThreshold: RealDistance,
       includeData: Boolean,
       includeLocation: Boolean,
-      timeoutMilliseconds: Int): Future[Either[NeighborsRequestError, Seq[Neighbor]]] = {
+      timeoutMilliseconds: Int): Future[Either[NeighborsRequestError, NeighborsResponse]] = {
     if (location.length == config.dimensions) {
       metric.toEasyDistance(distanceThreshold) match {
         case Some(easyDistanceThreshold) => {
           val request = GetNeighborsRequestByLocation(
             Coordinates(location: _*), k , easyDistanceThreshold, includeData = includeData,
             includeLocation = includeLocation, timeoutMilliseconds)
-          getNeighborsWithRequest(request, timeoutMilliseconds).map(neighbors => Right(neighbors))
+          getNeighborsWithRequest(request, timeoutMilliseconds).map(response => Right(response))
         }
         case None => Future(Left(InvalidDistanceThreshold))
       }
@@ -117,13 +117,13 @@ class NeighborhoodCluster (
       distanceThreshold: RealDistance,
       includeData: Boolean,
       includeLocation: Boolean,
-      timeoutMilliseconds: Int): Future[Either[NeighborsRequestError, Seq[Neighbor]]] = {
+      timeoutMilliseconds: Int): Future[Either[NeighborsRequestError, NeighborsResponse]] = {
     metric.toEasyDistance(distanceThreshold) match {
       case Some(easyDistanceThreshold) => {
         val request = GetNeighborsRequestByLocationId(
           locationId, k , easyDistanceThreshold, includeData = includeData,
           includeLocation = includeLocation, timeoutMilliseconds)
-        getNeighborsWithRequest(request, timeoutMilliseconds).map(neighbors => Right(neighbors))
+        getNeighborsWithRequest(request, timeoutMilliseconds).map(response => Right(response))
       }
       case None => Future(Left(InvalidDistanceThreshold))
     }
@@ -131,12 +131,14 @@ class NeighborhoodCluster (
 
   private def getNeighborsWithRequest(
       request: GetNeighborsRequest,
-      timeoutMilliseconds: Int): Future[Seq[Neighbor]] = {
+      timeoutMilliseconds: Int): Future[NeighborsResponse] = {
     implicit val askTimeout = Timeout((Constants.slightlyIncreaseTimeout(timeoutMilliseconds)).milliseconds)
     (receptionistActor ? request).mapTo[GetNeighborsResponse].map(response =>
-      response.neighbors.flatMap(neighbor =>
+      NeighborsResponse(
+        timeoutReached = response.timeoutReached,
+        neighbors = response.neighbors.flatMap(neighbor =>
         config.metric.toRealDistance(neighbor.distance).map(realDistance =>
-          Neighbor(neighbor.id, realDistance, neighbor.data, neighbor.location))))
+          Neighbor(neighbor.id, realDistance, neighbor.data, neighbor.location)))))
   }
 
   def getHealth(): Future[ClusterHealth] = {

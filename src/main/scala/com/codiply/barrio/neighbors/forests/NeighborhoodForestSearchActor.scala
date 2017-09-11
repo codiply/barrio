@@ -32,6 +32,7 @@ object NeighborhoodForestSearchActorProtocol {
   final case class NeighborsSearchTreeRequest(
       location: Coordinates, k: Int, includeData: Boolean, includeLocation: Boolean, distanceThreshold: EasyDistance)
   final case class NeighborsSearchLeafResponse(container: NearestNeighborsContainer)
+  final case class NeighborsForestSearchResponse(timeoutReached: Boolean, neighborsContainer: NearestNeighborsContainer)
   final case class CandidateSubTree(root: ActorRef, minDistance: EasyDistance)
   final case class EnqueueCandidate(candidate: CandidateSubTree)
 }
@@ -78,7 +79,7 @@ class NeighborhoodForestSearchActor(
     case EnqueueCandidate(candidate) => {
       prioritisedSubTrees.enqueue(candidate)
     }
-    case DoSendResponse => sendResponse()
+    case DoSendResponse => sendResponse(timeoutReached = true)
   }
 
   private def pruneQueue(distanceUpperBound: EasyDistance): Unit =
@@ -98,9 +99,9 @@ class NeighborhoodForestSearchActor(
     }
   }
 
-  private def sendResponse(): Unit = {
+  private def sendResponse(timeoutReached: Boolean = false): Unit = {
     timeoutCancellable.cancel()
-    responseRecipient ! nearestNeighborsContainer
+    responseRecipient ! NeighborsForestSearchResponse(timeoutReached, nearestNeighborsContainer)
     context.stop(self)
   }
 }

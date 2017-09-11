@@ -10,6 +10,7 @@ import com.codiply.barrio.generic.AggregatorMapperContext
 import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.neighbors.ActorProtocol._
+import com.codiply.barrio.neighbors.forests.NeighborhoodForestSearchActorProtocol.NeighborsForestSearchResponse
 import com.codiply.barrio.neighbors.NearestNeighborsContainer
 
 object NeighborAggregatorActor {
@@ -18,11 +19,15 @@ object NeighborAggregatorActor {
       responseRecipient: ActorRef,
       expectedNumberOfResponses: Int,
       timeout: FiniteDuration): Props = {
-        val initialValue = NearestNeighborsContainer.empty(kNeighbors)
-        val folder = (aggregateContainer: NearestNeighborsContainer, newContainer: NearestNeighborsContainer) =>
-          aggregateContainer.merge(newContainer)
-        val mapper = (aggregateContainer: NearestNeighborsContainer, mapperContext: AggregatorMapperContext) =>
-          GetNeighborsResponse(aggregateContainer.orderedDistinctNeighbors)
+        val initialValue = NeighborsForestSearchResponse(false, NearestNeighborsContainer.empty(kNeighbors))
+        val folder = (aggregateResponse: NeighborsForestSearchResponse, newResponse: NeighborsForestSearchResponse) =>
+          NeighborsForestSearchResponse(
+              aggregateResponse.timeoutReached || newResponse.timeoutReached,
+              aggregateResponse.neighborsContainer.merge(newResponse.neighborsContainer))
+        val mapper = (aggregateResponse: NeighborsForestSearchResponse, mapperContext: AggregatorMapperContext) =>
+          GetNeighborsResponse(
+              timeoutReached = aggregateResponse.timeoutReached || mapperContext.timeoutReached,
+              aggregateResponse.neighborsContainer.orderedDistinctNeighbors)
         AggregatorActor.props(responseRecipient, initialValue, folder, mapper, None, expectedNumberOfResponses, timeout)
       }
 }
