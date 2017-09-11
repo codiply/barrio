@@ -29,4 +29,11 @@ mainClass in assembly := Some("com.codiply.barrio.Main")
 addCommandAlias("ss", ";scalastyle;test:scalastyle")
 
 // A stage step is needed when deploying to demo app in Heroku
-addCommandAlias("stage", "assembly")
+addCommandAlias("stage", ";assembly")
+
+addCommandAlias("demo", 
+    ";run --isUrl " + 
+    "-f https://media.githubusercontent.com/media/codiply/barrio-test-data/master/movielens-item-factors/rank-16.txt " +
+    "-d 16 " +
+    "-m cosine " +
+    "--separator '@~@'")
