@@ -32,8 +32,8 @@ addCommandAlias("ss", ";scalastyle;test:scalastyle")
 addCommandAlias("stage", ";assembly")
 
 addCommandAlias("demo", 
-    ";run --isUrl " + 
+    ";run --isUrl --cache " + 
     "-f https://media.githubusercontent.com/media/codiply/barrio-test-data/master/movielens-item-factors/rank-16.txt " +
     "-d 16 " +
     "-m cosine " +
-    "--separator '@~@'")
+    "--separator @~@")

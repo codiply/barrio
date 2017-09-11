@@ -14,6 +14,7 @@ object ArgsConfig {
 }
 
 case class ArgsConfig(
+    cache: Boolean = false,
     coordinateSeparator: String = ",",
     dimensions: Int = ArgsConfig.defaultDimensions,
     file: String = "",
@@ -104,6 +105,11 @@ object ArgsParser {
       .maxOccurs(1)
       .action( (_, conf) => conf.copy(isUrl = true) )
       .text("flag for loading data from the web")
+
+    opt[Unit]("cache")
+      .maxOccurs(1)
+      .action( (_, conf) => conf.copy(cache = true) )
+      .text("flag for caching responses (when possible)")
 
     help("help").text("prints this usage text")
 
