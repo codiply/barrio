@@ -22,6 +22,7 @@ object NeighborhoodConfig {
       Math.min(maxRequestTimeoutMilliseconds,
           getPositiveInt(config, ConfigKey.defaultRequestTimeoutMilliseconds, Defaults.defaultRequestTimeoutMilliseconds))
     NeighborhoodConfig(
+        cache = argsConfig.cache,
         defaultRequestTimeoutMilliseconds = defaultRequestTimeoutMilliseconds,
         dimensions = argsConfig.dimensions,
         maxPointsPerLeaf = argsConfig.maxPointsPerLeaf,
@@ -44,6 +45,7 @@ object NeighborhoodConfig {
 }
 
 case class NeighborhoodConfig(
+    cache: Boolean,
     defaultRequestTimeoutMilliseconds: Int,
     dimensions: Int,
     maxPointsPerLeaf: Int,

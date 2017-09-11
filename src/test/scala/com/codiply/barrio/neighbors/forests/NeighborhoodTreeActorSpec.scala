@@ -45,6 +45,7 @@ class NeighborhoodTreeActorSpec extends TestKit(ActorSystem("NeighborhoodTreeAct
     val point3 = Point("point3", Coordinates(0.0, 1.0), "data-3")
 
     def createConfig(maxPointsPerLeaf: Int): NeighborhoodConfig = NeighborhoodConfig(
+      cache = false,
       defaultRequestTimeoutMilliseconds = NeighborhoodConfig.Defaults.defaultRequestTimeoutMilliseconds,
       dimensions = dimensions,
       maxPointsPerLeaf = maxPointsPerLeaf,

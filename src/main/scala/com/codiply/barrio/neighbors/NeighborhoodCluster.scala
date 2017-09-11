@@ -54,8 +54,14 @@ class NeighborhoodCluster (
   val locationIndexActorRouter = createBroadcastRouter(actorSystem, locationIndexActorNamePrefix)
   val nodeActorRouter = createBroadcastRouter(actorSystem, nodeActorNamePrefix)
 
-  val receptionistActor = actorSystem.actorOf(
-      NeighborhoodReceptionistActor.props(locationIndexActorRouter, nodeActorRouter), "receptionist")
+  val receptionistActor =
+      if (config.cache) {
+        actorSystem.actorOf(
+          NeighborhoodReceptionistCachingActor.props(locationIndexActorRouter, nodeActorRouter), "receptionist-cache")
+      } else {
+        actorSystem.actorOf(
+          NeighborhoodReceptionistActor.props(locationIndexActorRouter, nodeActorRouter), "receptionist")
+      }
 
   def getNeighbors(
     location: Option[Seq[Double]],
