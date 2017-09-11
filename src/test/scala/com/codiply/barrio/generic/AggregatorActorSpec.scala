@@ -11,6 +11,7 @@ import org.scalatest.Matchers
 import org.scalatest.WordSpecLike
 
 import com.codiply.barrio.generic.AggregatorActor
+import com.codiply.barrio.generic.AggregatorMapperContext
 import com.codiply.barrio.generic.AggregatorActorProtocol.TerminateAggregationEarly
 import com.codiply.barrio.generic.AggregatorActorProtocol.CancelAggregation
 import com.codiply.barrio.test.TestKitConfig
@@ -25,7 +26,11 @@ class AggregatorActorSpec extends TestKit(ActorSystem("AggregatorActorSpec", Tes
   "An AggregatorActor" must {
     val initialValue = "i"
     val folder = (aggregate: String, message: String) => aggregate + " then " + message
-    val mapper = (aggregate: String) => aggregate.toUpperCase()
+    val mapper = (aggregate: String, mapperContext: AggregatorMapperContext) =>
+      aggregate.toUpperCase() +
+      (if (mapperContext.timeoutReached) " TimeoutReached" else "") +
+      (if (mapperContext.earlyTerminationConditionMet) " EarlyTerminationConditionMet" else "") +
+      (if (mapperContext.earlyTerminationRequested) " EarlyTerminationRequested" else "")
     val timeoutMilliseconds = 300
     val timeout = timeoutMilliseconds.millisecond
     val justBeforeTimeout = (timeoutMilliseconds * 0.9).millisecond
@@ -47,7 +52,7 @@ class AggregatorActorSpec extends TestKit(ActorSystem("AggregatorActorSpec", Tes
       val testProbe = TestProbe()
 
       val expectedNumberOfResponses = 3
-      val expectedResponse = "I"
+      val expectedResponse = "I TimeoutReached"
 
       val aggregator = system.actorOf(AggregatorActor.props(
           testProbe.ref, initialValue, folder, mapper, noEarlyTerminationCondition, expectedNumberOfResponses, timeout))
@@ -80,7 +85,7 @@ class AggregatorActorSpec extends TestKit(ActorSystem("AggregatorActorSpec", Tes
 
       val message1 = "a"
       val message2 = "b"
-      val expectedResponse = "I THEN A THEN B"
+      val expectedResponse = "I THEN A THEN B TimeoutReached"
 
       val aggregator = system.actorOf(AggregatorActor.props(
           testProbe.ref, initialValue, folder, mapper, noEarlyTerminationCondition, expectedNumberOfResponses, timeout))
@@ -124,7 +129,7 @@ class AggregatorActorSpec extends TestKit(ActorSystem("AggregatorActorSpec", Tes
 
       val earlyTerminationCondition = Some((aggregate: String) => aggregate.contains(message2))
 
-      val expectedResponse = "I THEN A THEN B"
+      val expectedResponse = "I THEN A THEN B EarlyTerminationConditionMet"
 
       val aggregator = system.actorOf(AggregatorActor.props(
           testProbe.ref, initialValue, folder, mapper, earlyTerminationCondition, expectedNumberOfResponses, timeout))
@@ -141,7 +146,7 @@ class AggregatorActorSpec extends TestKit(ActorSystem("AggregatorActorSpec", Tes
       val testProbe = TestProbe()
 
       val expectedNumberOfResponses = 3
-      val expectedResponse = "I"
+      val expectedResponse = "I EarlyTerminationRequested"
 
       val aggregator = system.actorOf(AggregatorActor.props(
           testProbe.ref, initialValue, folder, mapper, noEarlyTerminationCondition, expectedNumberOfResponses, timeout))
@@ -157,7 +162,6 @@ class AggregatorActorSpec extends TestKit(ActorSystem("AggregatorActorSpec", Tes
       val terminationProbe = TestProbe()
 
       val expectedNumberOfResponses = 3
-      val expectedResponse = "I"
 
       val aggregator = system.actorOf(AggregatorActor.props(
           testProbe.ref, initialValue, folder, mapper, noEarlyTerminationCondition, expectedNumberOfResponses, timeout))
