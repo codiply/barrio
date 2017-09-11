@@ -62,10 +62,11 @@ class WebServer(neighborhood: NeighborProvider) extends HttpApp with JsonSupport
                     val response = NeighborsErrorJson(mappedError.message).toJson
                     complete(HttpResponse(mappedError.status, entity = HttpEntity(ContentTypes.`application/json`, response.toString)))
                   }
-                  case Right(neighbors) => {
+                  case Right(neighborsResponse) => {
                     val response = NeighborsResponseJson(
-                      count = neighbors.length,
-                      neighbors = neighbors.map(neighbor =>
+                      timeoutReached = neighborsResponse.timeoutReached,
+                      count = neighborsResponse.neighbors.length,
+                      neighbors = neighborsResponse.neighbors.map(neighbor =>
                         NeighborJson(
                           neighbor.id, neighbor.distance.value,
                           neighbor.data, neighbor.location.map(_.toSeq)))).toJson

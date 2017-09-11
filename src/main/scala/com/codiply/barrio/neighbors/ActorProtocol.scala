@@ -22,7 +22,7 @@ object ActorProtocol {
       includeData: Boolean,
       includeLocation: Boolean,
       timeoutMilliseconds: Int) extends GetNeighborsRequest
-  final case class GetNeighborsResponse(neighbors: Vector[NearestNeighbor])
+  final case class GetNeighborsResponse(timeoutReached: Boolean, neighbors: Vector[NearestNeighbor])
   final case class GetClusterStatsRequest(timeoutMilliseconds: Int, doGarbageCollect: Boolean)
   final case class GetNodeStatsRequest(timeoutMilliseconds: Int, doGarbageCollect: Boolean)
   final case class GetClusterStatsResponse(stats: ClusterStats)
