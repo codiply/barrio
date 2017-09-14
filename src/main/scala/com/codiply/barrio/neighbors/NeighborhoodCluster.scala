@@ -57,7 +57,7 @@ class NeighborhoodCluster (
   val receptionistActor =
       if (config.cache) {
         actorSystem.actorOf(
-          NeighborhoodReceptionistCachingActor.props(locationIndexActorRouter, nodeActorRouter), "receptionist-cache")
+          NeighborhoodReceptionistCachingActor.props(locationIndexActorRouter, nodeActorRouter, config.cacheConfig), "receptionist-cache")
       } else {
         actorSystem.actorOf(
           NeighborhoodReceptionistActor.props(locationIndexActorRouter, nodeActorRouter), "receptionist")
