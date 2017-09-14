@@ -12,6 +12,8 @@ object NeighborhoodConfig {
     val maxRequestTimeoutMilliseconds = 60000
     val minRequestTimeoutMilliseconds = 10
     val defaultRequestTimeoutMilliseconds = 10000
+    val cacheExpirationAfterAccessSeconds = 1200
+    val cacheMaximumSize = 10000
   }
 
   def apply(argsConfig: ArgsConfig, config: Config): NeighborhoodConfig = {
@@ -23,6 +25,11 @@ object NeighborhoodConfig {
           getPositiveInt(config, ConfigKey.defaultRequestTimeoutMilliseconds, Defaults.defaultRequestTimeoutMilliseconds))
     NeighborhoodConfig(
         cache = argsConfig.cache,
+        cacheConfig = CacheConfig(
+            expirationAfterAccessSeconds =
+              getPositiveInt(config, ConfigKey.cacheExpireAfterAccessSeconds, Defaults.cacheExpirationAfterAccessSeconds),
+            maximumSize =
+              getPositiveInt(config, ConfigKey.cacheMaximumSize, Defaults.cacheMaximumSize)),
         defaultRequestTimeoutMilliseconds = defaultRequestTimeoutMilliseconds,
         dimensions = argsConfig.dimensions,
         maxPointsPerLeaf = argsConfig.maxPointsPerLeaf,
@@ -35,17 +42,25 @@ object NeighborhoodConfig {
   }
 
   private def getPositiveInt(config: Config, key: String, default: Int): Int = {
+    getPositiveIntOption(config, key) match {
+      case Some(value) => value
+      case None => default
+    }
+  }
+
+  private def getPositiveIntOption(config: Config, key: String): Option[Int] = {
     try {
       val value = config.getInt(key)
-      if (value > 0) value else default
+      if (value > 0) Some(value) else None
     } catch {
-      case e: Exception => default
+      case e: Exception => None
     }
   }
 }
 
 case class NeighborhoodConfig(
     cache: Boolean,
+    cacheConfig: CacheConfig,
     defaultRequestTimeoutMilliseconds: Int,
     dimensions: Int,
     maxPointsPerLeaf: Int,
@@ -63,3 +78,5 @@ case class NeighborhoodConfig(
     }
   }
 }
+
+case class CacheConfig(expirationAfterAccessSeconds: Int, maximumSize: Int)

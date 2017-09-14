@@ -100,6 +100,8 @@ Bring the cluster down with
 - `BARRIO_HOSTNAME`: the hostname of this node
 - `BARRIO_MAX_REQUEST_TIMEOUT`: the maximum timeout allowed to be set in a request
 - `BARRIO_WEB_API_PORT`: the port of the Web API endpoint
+- `CACHE_EXPIRE_AFTER_ACCESS_SECONDS`: expiry period in seconds for cached responses
+- `CACHE_MAXIMUM_SIZE`: the maximum number of responses to be cached
 
 ### default values
 
@@ -110,6 +112,8 @@ Bring the cluster down with
 - `BARRIO_HOSTNAME`: `"localhost"`
 - `BARRIO_MAX_REQUEST_TIMEOUT`: `60000`
 - `BARRIO_WEB_API_PORT`: `18001`
+- `CACHE_EXPIRE_AFTER_ACCESS_SECONDS`: 1200
+- `CACHE_MAXIMUM_SIZE`: 10000
 
 ## API
 

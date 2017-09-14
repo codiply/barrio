@@ -6,9 +6,10 @@ scalaVersion := "2.11.11"
 
 libraryDependencies ++= { 
   val akkaVersion = "2.4.19" 
-  val akkaHttpVersion = "10.0.9"
+  val akkaHttpVersion = "10.0.10"
   
   Seq(
+    "com.github.blemale" %% "scaffeine" % "1.3.0" % Compile,
     "com.github.scopt" %% "scopt" % "3.6.0",
     "org.scalactic" %% "scalactic" % "3.0.1",
     "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % Test,

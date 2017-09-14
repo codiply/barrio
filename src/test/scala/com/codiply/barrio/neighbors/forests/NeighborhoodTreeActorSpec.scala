@@ -14,6 +14,7 @@ import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.geometry.Point.Coordinates
 import com.codiply.barrio.helpers.Random
+import com.codiply.barrio.neighbors.CacheConfig
 import com.codiply.barrio.neighbors.NeighborhoodConfig
 import com.codiply.barrio.neighbors.forests.NeighborhoodTreeActor
 import com.codiply.barrio.neighbors.forests.ActorProtocol.InitialiseTree
@@ -46,6 +47,7 @@ class NeighborhoodTreeActorSpec extends TestKit(ActorSystem("NeighborhoodTreeAct
 
     def createConfig(maxPointsPerLeaf: Int): NeighborhoodConfig = NeighborhoodConfig(
       cache = false,
+      cacheConfig = CacheConfig(0, 0),
       defaultRequestTimeoutMilliseconds = NeighborhoodConfig.Defaults.defaultRequestTimeoutMilliseconds,
       dimensions = dimensions,
       maxPointsPerLeaf = maxPointsPerLeaf,
