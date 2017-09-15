@@ -31,8 +31,7 @@ def wait_until_cluster_initialised():
             print("Cluster initialised!")
             break
         elapsed = time.time() - start
-        print("Cluster not initialised... keep waiting... elapsed time: {1:.2f} seconds.".format(
-            SLEEPING_INTERVAL_SECONDS, elapsed))
+        print("Cluster not initialised... keep waiting... elapsed time: {0:.2f} seconds.".format(elapsed))
         time.sleep(SLEEPING_INTERVAL_SECONDS)
         elapsed = time.time() - start
     else:
