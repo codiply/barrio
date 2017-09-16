@@ -7,6 +7,7 @@ import akka.actor.Props
 
 import com.codiply.barrio.generic.AggregatorActor
 import com.codiply.barrio.generic.AggregatorMapperContext
+import com.codiply.barrio.geometry.EasyDistance
 import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.neighbors.ActorProtocol._
@@ -18,7 +19,8 @@ object NeighborAggregatorActor {
       kNeighbors: Int,
       responseRecipient: ActorRef,
       expectedNumberOfResponses: Int,
-      timeout: FiniteDuration): Props = {
+      timeout: FiniteDuration,
+      distanceThreshold: EasyDistance): Props = {
         val initialValue = NeighborsForestSearchResponse(false, NearestNeighborsContainer.empty(kNeighbors))
         val folder = (aggregateResponse: NeighborsForestSearchResponse, newResponse: NeighborsForestSearchResponse) =>
           NeighborsForestSearchResponse(
@@ -27,6 +29,7 @@ object NeighborAggregatorActor {
         val mapper = (aggregateResponse: NeighborsForestSearchResponse, mapperContext: AggregatorMapperContext) =>
           GetNeighborsResponse(
               timeoutReached = aggregateResponse.timeoutReached || mapperContext.timeoutReached,
+              distanceThreshold = distanceThreshold,
               aggregateResponse.neighborsContainer.orderedDistinctNeighbors)
         AggregatorActor.props(responseRecipient, initialValue, folder, mapper, None, expectedNumberOfResponses, timeout)
       }

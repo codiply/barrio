@@ -50,7 +50,7 @@ class NeighborhoodReceptionistActor(
     case request @ GetNeighborsRequestByLocation(location, k, distanceThreshold, _, _, timeoutMilliseconds) => {
       val originalSender = sender
       val neighborAggregator = context.actorOf(NeighborAggregatorActor.props(
-          k, originalSender, nodeCount, timeoutMilliseconds.milliseconds))
+          k, originalSender, nodeCount, timeoutMilliseconds.milliseconds, distanceThreshold))
       val newRequest = request.copy(timeoutMilliseconds = Constants.slightlyReduceTimeout(request.timeoutMilliseconds))
       nodeActorRouter.tell(newRequest, neighborAggregator)
     }
@@ -61,7 +61,7 @@ class NeighborhoodReceptionistActor(
 
       // Prepare the aggregator for the neighbors.
       val neighborAggregator = context.actorOf(NeighborAggregatorActor.props(
-          request.k, originalSender, nodeCount, request.timeoutMilliseconds.milliseconds))
+          request.k, originalSender, nodeCount, request.timeoutMilliseconds.milliseconds, request.distanceThreshold))
 
       val forwardingLogic = (getLocationResponse: GetLocationResponse) =>
         getLocationResponse.location match {
