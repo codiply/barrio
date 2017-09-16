@@ -11,13 +11,16 @@ import akka.pattern.ask
 import akka.routing.BroadcastGroup
 import akka.util.Timeout
 
+import com.codiply.barrio.helpers.CacheWrapper
 import com.codiply.barrio.helpers.Constants
 import com.codiply.barrio.helpers.RandomProvider
+import com.codiply.barrio.helpers.ScaffeineWrapper
 import com.codiply.barrio.geometry.EasyDistance
 import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.geometry.Point.Coordinates
 import com.codiply.barrio.geometry.RealDistance
+import com.codiply.barrio.neighbors.caching.Types.NeighborsCache
 import com.codiply.barrio.neighbors.Errors._
 
 object NeighborhoodCluster {
@@ -38,6 +41,8 @@ class NeighborhoodCluster (
   import ActorProtocol.GetNeighborsResponse
   import NeighborhoodCluster._
   import com.codiply.barrio.neighbors.forests.NeighborhoodForestActor
+  import com.codiply.barrio.neighbors.caching.NeighborsCacheReaderActor
+  import com.codiply.barrio.neighbors.caching.NeighborsCacheWriterActor
 
   val points = pointsLoader().toList
   val metric = config.metric
@@ -56,8 +61,17 @@ class NeighborhoodCluster (
 
   val receptionistActor =
       if (config.cache) {
+        val cache: NeighborsCache = new ScaffeineWrapper[String, GetNeighborsResponse](
+            Some(config.cacheConfig.expirationAfterAccessSeconds.seconds),
+            Some(config.cacheConfig.maximumSize))
+        val neighborsCacheReader = actorSystem.actorOf(
+            NeighborsCacheReaderActor.props(cache), "neighbors-cache-reader")
+        val neighborsCacheWriter = actorSystem.actorOf(
+            NeighborsCacheWriterActor.props(cache), "neighbors-cache-writer")
         actorSystem.actorOf(
-          NeighborhoodReceptionistCachingActor.props(locationIndexActorRouter, nodeActorRouter, config.cacheConfig), "receptionist-cache")
+          NeighborhoodReceptionistCachingActor.props(
+              locationIndexActorRouter, nodeActorRouter, neighborsCacheReader, neighborsCacheWriter),
+              "receptionist-cache")
       } else {
         actorSystem.actorOf(
           NeighborhoodReceptionistActor.props(locationIndexActorRouter, nodeActorRouter), "receptionist")
