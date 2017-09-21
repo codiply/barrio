@@ -26,14 +26,6 @@ Run from the command line
 - `sbt test:scalastyle` for checking the test files, or
 - `sbt ss` for checking all files
 
-### Generate test data
-
-Run from the root folder
-
-    python .\scripts\create-test-data-grid.py
-
-This will create 4 input files in `\data\grid\` folder.
-
 ### Input file format
 
 Each line contains one data point, and  is split into 3 parts using a separator that defaults to three colons (`:::`)
@@ -72,7 +64,6 @@ and then start the cluster
 
     docker-compose up -d
     
-
 This uses the configuration in `docker-compose.yml` and it will create a cluster of 4 nodes. 
 Their endpoints are accessible on the host machine here:
 
