@@ -3,7 +3,7 @@
 import json
 from urllib.request import urlopen
 
-STATS_WITH_GARBAGE_COLLECTION_URL = "http://localhost:18001/stats"
+STATS_WITH_GARBAGE_COLLECTION_URL = "http://localhost:19001/stats"
     
 def print_stats():
     # Perform garbage collection a couple of times

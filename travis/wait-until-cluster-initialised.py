@@ -5,7 +5,7 @@ import sys
 import time
 from urllib.request import urlopen
 
-STATS_URL = "http://localhost:18001/stats"
+STATS_URL = "http://localhost:19001/stats"
 MAXIMUM_TIME_SECONDS = 2 * 60
 SLEEPING_INTERVAL_SECONDS = 1
 
