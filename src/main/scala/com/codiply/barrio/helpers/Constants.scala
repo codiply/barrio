@@ -9,3 +9,8 @@ object Constants {
   def slightlyReduceTimeout(timeout: Int): Int = (slightlyReduceTimeoutFactor * timeout).round.toInt
   def slightlyIncreaseTimeout(timeout: Int): Int = (slightlyIncreaseTimeoutFactor * timeout).round.toInt
 }
+
+object NodeRoles {
+  val seedOnlyNode = "SeedOnlyNode"
+  val fullNode = "FullNode"
+}
