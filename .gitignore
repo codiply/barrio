@@ -8,6 +8,7 @@ target/
 .classpath
 .project
 .idea/
+.idea_modules/
 .scalastyle
 
 .pydevproject
