@@ -4,7 +4,6 @@ import scala.concurrent.duration._
 
 import akka.actor.Actor
 import akka.actor.ActorLogging
-import akka.actor.Actor.Receive
 import akka.actor.ActorRef
 import akka.actor.Address
 import akka.cluster.Cluster
@@ -15,9 +14,7 @@ import akka.actor.Props
 import com.codiply.barrio.generic.AggregatorActorProtocol.TerminateAggregationEarly
 import com.codiply.barrio.generic.OneOffForwardingActor
 import com.codiply.barrio.generic.OneOffForwardingActor.OneOffForward
-import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.helpers.NodeRoles
-import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.helpers.Constants
 import com.codiply.barrio.neighbors.aggregators.LocationIndexAggregatorActor
 import com.codiply.barrio.neighbors.aggregators.NeighborAggregatorActor
@@ -95,35 +92,47 @@ class NeighborhoodReceptionistActor(
   def receiveClusterEvents: Receive = receiveMemberEvents orElse receiveMemberEvents
 
   def receiveMemberEvents: Receive = {
-    case event: MemberEvent if isFullNode(event.member) =>
+    case event: MemberEvent if !isFullNode(event.member) =>
+      logClusterEvent(event.getClass.getName, event.member)
       ()
     case event @ MemberUp(member) =>
+      logClusterEvent("MemberUp", member)
       this.nodeSet += member.address
       this.updateNodeCount()
     case event @ MemberWeaklyUp(member) =>
+      logClusterEvent("MemberWeaklyUp", member)
       this.nodeSet += member.address
       this.updateNodeCount()
     case event @ MemberLeft(member) =>
+      logClusterEvent("MemberLeft", member)
       this.nodeSet -= member.address
       this.updateNodeCount()
     case event @ MemberExited(member) =>
+      logClusterEvent("MemberExited", member)
       this.nodeSet -= member.address
       this.updateNodeCount()
     case event @ MemberRemoved(member, previousStatus) =>
+      logClusterEvent("MemberRemoved", member)
       this.nodeSet -= member.address
       this.updateNodeCount()
   }
 
   def receiveReachabilityEvents: Receive = {
     case event @ ReachableMember(member) if isFullNode(member) =>
+      logClusterEvent("ReachableMember", member)
       this.nodeSet += member.address
       this.updateNodeCount()
     case event @ UnreachableMember(member) if isFullNode(member) =>
+      logClusterEvent("UnreachableMember", member)
       this.nodeSet -= member.address
       this.updateNodeCount()
   }
 
-  private def isFullNode(member: Member): Boolean = member.roles.contains(NodeRoles.fullNode)
+  private def logClusterEvent(eventName: String, member: Member) =
+    log.info("Received cluster event {0) from member {1} with roles {2}",
+      eventName, member.address, member.roles)
+
+  private def isFullNode(member: Member): Boolean = member.hasRole(NodeRoles.fullNode)
 
   private def updateNodeCount() = {
     this.nodeCount = this.nodeSet.size
