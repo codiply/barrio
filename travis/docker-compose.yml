@@ -1,11 +1,24 @@
 version: '2'
 services:
+  seed-1:
+    hostname: seed-1
+    image: openjdk:8
+    command: java -jar /barrio/barrio.jar --seedOnlyNode
+    environment:
+      - BARRIO_AKKA_SEED_HOST=seed-1:18011
+      - BARRIO_AKKA_SYSTEM=barrio
+      - BARRIO_AKKA_REMOTING_PORT=18011
+      - BARRIO_HOSTNAME=seed-1
+    expose:
+      - 18011
+    volumes:
+      - ${TRAVIS_BUILD_DIR}/target/barrio/:/barrio/
   node-1:
     hostname: node-1
     image: openjdk:8
     command: java -jar /barrio/barrio.jar --isUrl -f https://media.githubusercontent.com/media/codiply/barrio-test-data/master/movielens-item-factors/rank-16/part-1.txt -d 16 -m cosine --separator @~@
     environment:
-      - BARRIO_AKKA_SEED_HOST=node-1:18011
+      - BARRIO_AKKA_SEED_HOST=seed-1:18011
       - BARRIO_AKKA_SYSTEM=barrio
       - BARRIO_AKKA_REMOTING_PORT=18011
       - BARRIO_DEFAULT_REQUEST_TIMEOUT=2000
@@ -19,13 +32,12 @@ services:
       - "19001:18001"
     volumes:
       - ${TRAVIS_BUILD_DIR}/target/barrio/:/barrio/
-      - ./data/:/data/
   node-2:
     hostname: node-2
     image: openjdk:8
     command: java -jar /barrio/barrio.jar --isUrl -f https://media.githubusercontent.com/media/codiply/barrio-test-data/master/movielens-item-factors/rank-16/part-2.txt -d 16 -m cosine --separator @~@
     environment:
-      - BARRIO_AKKA_SEED_HOST=node-1:18011
+      - BARRIO_AKKA_SEED_HOST=seed-1:18011
       - BARRIO_AKKA_SYSTEM=barrio
       - BARRIO_AKKA_REMOTING_PORT=18011
       - BARRIO_DEFAULT_REQUEST_TIMEOUT=2000
@@ -39,13 +51,12 @@ services:
       - "19002:18001"
     volumes:
       - ${TRAVIS_BUILD_DIR}/target/barrio/:/barrio/
-      - ./data/:/data/
   node-3:
     hostname: node-3
     image: openjdk:8
     command: java -jar /barrio/barrio.jar --isUrl -f https://media.githubusercontent.com/media/codiply/barrio-test-data/master/movielens-item-factors/rank-16/part-3.txt -d 16 -m cosine --separator @~@
     environment:
-      - BARRIO_AKKA_SEED_HOST=node-1:18011
+      - BARRIO_AKKA_SEED_HOST=seed-1:18011
       - BARRIO_AKKA_SYSTEM=barrio
       - BARRIO_AKKA_REMOTING_PORT=18011
       - BARRIO_DEFAULT_REQUEST_TIMEOUT=2000
@@ -64,7 +75,7 @@ services:
     image: openjdk:8
     command: java -jar /barrio/barrio.jar --isUrl -f https://media.githubusercontent.com/media/codiply/barrio-test-data/master/movielens-item-factors/rank-16/part-4.txt -d 16 -m cosine --separator @~@
     environment:
-      - BARRIO_AKKA_SEED_HOST=node-1:18011
+      - BARRIO_AKKA_SEED_HOST=seed-1:18011
       - BARRIO_AKKA_SYSTEM=barrio
       - BARRIO_AKKA_REMOTING_PORT=18011
       - BARRIO_DEFAULT_REQUEST_TIMEOUT=2000

@@ -8,7 +8,6 @@ import scopt.OptionParser
 import com.codiply.barrio.geometry.Metric
 
 object ArgsConfig {
-  val defaultDimensions = 1
   val defaultMaxPointsPerLeaf = 128
   val defaultTreesPerNode = 3
 }
@@ -16,12 +15,13 @@ object ArgsConfig {
 case class ArgsConfig(
     cache: Boolean = false,
     coordinateSeparator: String = ",",
-    dimensions: Int = ArgsConfig.defaultDimensions,
+    dimensions: Int = -1,
     file: String = "",
     separator: String = ":::",
     maxPointsPerLeaf: Int = ArgsConfig.defaultMaxPointsPerLeaf,
     metric: String = Metric.euclidean.name,
     randomSeed: Option[Int] = None,
+    seedOnlyNode: Boolean = false,
     treesPerNode: Int = ArgsConfig.defaultTreesPerNode,
     isUrl: Boolean = false)
 
@@ -34,8 +34,12 @@ object ArgsParser {
     help("help")
     version("version")
 
+    opt[Unit]("seedOnlyNode")
+      .maxOccurs(1)
+      .action { (v, conf) => conf.copy(seedOnlyNode = true) }
+      .text("flag for making this node act as a seed for the cluster only")
+
     opt[String]('f', "file")
-      .required()
       .maxOccurs(1)
       .action { (v, conf) => conf.copy(file = v) }
       .text("the path to the input file containing the data points")
@@ -53,7 +57,6 @@ object ArgsParser {
       .text("the metric for calculating distances")
 
     opt[Int]('d', "dimensions")
-      .required()
       .maxOccurs(1)
       .validate(d =>
           if (d > 0) {
@@ -115,6 +118,10 @@ object ArgsParser {
 
     checkConfig(conf => {
       conf match {
+        case _ if (!conf.seedOnlyNode && conf.file.isEmpty()) =>
+          failure("Missing option --file")
+        case _ if (!conf.seedOnlyNode && conf.dimensions < 0) =>
+          failure("Missing option --dimensions")
         case _ if (!conf.isUrl && !Files.exists(Paths.get(conf.file))) =>
           failure("Value <file> refers to non-existent file")
         case _ if (conf.separator == conf.coordinateSeparator) =>

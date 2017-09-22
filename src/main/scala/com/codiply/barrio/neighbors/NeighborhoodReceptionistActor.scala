@@ -8,6 +8,7 @@ import akka.actor.Actor.Receive
 import akka.actor.ActorRef
 import akka.actor.Address
 import akka.cluster.Cluster
+import akka.cluster.Member
 import akka.cluster.ClusterEvent._
 import akka.actor.Props
 
@@ -15,6 +16,7 @@ import com.codiply.barrio.generic.AggregatorActorProtocol.TerminateAggregationEa
 import com.codiply.barrio.generic.OneOffForwardingActor
 import com.codiply.barrio.generic.OneOffForwardingActor.OneOffForward
 import com.codiply.barrio.geometry.Metric
+import com.codiply.barrio.helpers.NodeRoles
 import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.helpers.Constants
 import com.codiply.barrio.neighbors.aggregators.LocationIndexAggregatorActor
@@ -90,18 +92,16 @@ class NeighborhoodReceptionistActor(
     }
   }
 
-  def receiveClusterEvents: Receive = {
+  def receiveClusterEvents: Receive = receiveMemberEvents orElse receiveMemberEvents
+
+  def receiveMemberEvents: Receive = {
+    case event: MemberEvent if isFullNode(event.member) =>
+      ()
     case event @ MemberUp(member) =>
       this.nodeSet += member.address
       this.updateNodeCount()
     case event @ MemberWeaklyUp(member) =>
       this.nodeSet += member.address
-      this.updateNodeCount()
-    case event @ ReachableMember(member) =>
-      this.nodeSet += member.address
-      this.updateNodeCount()
-    case event @ UnreachableMember(member) =>
-      this.nodeSet -= member.address
       this.updateNodeCount()
     case event @ MemberLeft(member) =>
       this.nodeSet -= member.address
@@ -113,6 +113,17 @@ class NeighborhoodReceptionistActor(
       this.nodeSet -= member.address
       this.updateNodeCount()
   }
+
+  def receiveReachabilityEvents: Receive = {
+    case event @ ReachableMember(member) if isFullNode(member) =>
+      this.nodeSet += member.address
+      this.updateNodeCount()
+    case event @ UnreachableMember(member) if isFullNode(member) =>
+      this.nodeSet -= member.address
+      this.updateNodeCount()
+  }
+
+  private def isFullNode(member: Member): Boolean = member.roles.contains(NodeRoles.fullNode)
 
   private def updateNodeCount() = {
     this.nodeCount = this.nodeSet.size
