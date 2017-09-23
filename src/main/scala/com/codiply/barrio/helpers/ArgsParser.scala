@@ -12,6 +12,14 @@ object ArgsConfig {
   val defaultTreesPerNode = 3
 }
 
+sealed trait DataSourceType
+
+object DataSourceType {
+  case object LocalDataSource extends DataSourceType
+  case object WebDataSource extends DataSourceType
+  case object S3DataSource extends DataSourceType
+}
+
 case class ArgsConfig(
     cache: Boolean = false,
     coordinateSeparator: String = ",",
@@ -21,11 +29,23 @@ case class ArgsConfig(
     maxPointsPerLeaf: Int = ArgsConfig.defaultMaxPointsPerLeaf,
     metric: String = Metric.euclidean.name,
     randomSeed: Option[Int] = None,
+    s3Bucket: Option[String] = None,
     seedOnlyNode: Boolean = false,
     treesPerNode: Int = ArgsConfig.defaultTreesPerNode,
-    isUrl: Boolean = false)
+    isUrl: Boolean = false) {
+  import DataSourceType._
+
+  val dataSourceType =
+    (isUrl, s3Bucket) match {
+      case (true, _) => WebDataSource
+      case (_, Some(_)) => S3DataSource
+      case _ => LocalDataSource
+    }
+}
 
 object ArgsParser {
+  import DataSourceType._
+
   private val parser = new OptionParser[ArgsConfig]("barrio") {
     override def showUsageOnError = true
 
@@ -109,6 +129,11 @@ object ArgsParser {
       .action( (_, conf) => conf.copy(isUrl = true) )
       .text("flag for loading data from the web")
 
+    opt[String]("s3Bucket")
+      .maxOccurs(1)
+      .action( (v, conf) => conf.copy(s3Bucket = Some(v)) )
+      .text("S3 bucket containing the data file")
+
     opt[Unit]("cache")
       .maxOccurs(1)
       .action( (_, conf) => conf.copy(cache = true) )
@@ -122,7 +147,7 @@ object ArgsParser {
           failure("Missing option --file")
         case _ if (!conf.seedOnlyNode && conf.dimensions < 0) =>
           failure("Missing option --dimensions")
-        case _ if (!conf.isUrl && !Files.exists(Paths.get(conf.file))) =>
+        case _ if (conf.dataSourceType == LocalDataSource && !Files.exists(Paths.get(conf.file))) =>
           failure("Value <file> refers to non-existent file")
         case _ if (conf.separator == conf.coordinateSeparator) =>
           failure("value <separator> cannot be the same as <coordinateSeparator>")

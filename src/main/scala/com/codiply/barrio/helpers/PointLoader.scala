@@ -2,10 +2,34 @@ package com.codiply.barrio.helpers
 
 import scala.io.Source
 
+import awscala.s3.S3
+import awscala.Region
+
 import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.geometry.Point.Coordinates
+import com.codiply.barrio.helpers.DataSourceType._
 
 object PointLoader {
+  def getLoader(config: ArgsConfig): () => Iterable[Point] = {
+    config.dataSourceType match {
+      case WebDataSource =>
+        () =>
+          fromCsvUrl(config.file, config.dimensions,
+            separator = config.separator, coordinateSeparator = config.coordinateSeparator)
+      case LocalDataSource =>
+        () =>
+          fromCsvFile(config.file, config.dimensions,
+            separator = config.separator, coordinateSeparator = config.coordinateSeparator)
+      case S3DataSource =>
+        () =>
+          config.s3Bucket match {
+            case Some(bucket) => fromCsvOnS3(bucket = bucket, key = config.file, dimensions = config.dimensions,
+              separator = config.separator, coordinateSeparator = config.coordinateSeparator)
+            case None => Set.empty
+          }
+    }
+  }
+
   def fromCsvFile(
       fileName: String,
       dimensions: Int,
@@ -22,6 +46,18 @@ object PointLoader {
       coordinateSeparator: String): Seq[Point] = {
     fromCsvLines(Source.fromURL(url)("UTF-8").getLines.toSeq,
         dimensions, separator = separator, coordinateSeparator = coordinateSeparator)
+  }
+
+  def fromCsvOnS3(
+      bucket: String,
+      key: String,
+      dimensions: Int,
+      separator: String,
+      coordinateSeparator: String): Seq[Point] = {
+    implicit val s3 = S3.at(Region.Ireland)
+    val s3Object = s3.getObject(bucket, key)
+    val lines = Source.fromInputStream(s3Object.getObjectContent())("UTF-8").getLines.toSeq
+    fromCsvLines(lines, dimensions, separator = separator, coordinateSeparator = coordinateSeparator)
   }
 
   def fromCsvLines(
