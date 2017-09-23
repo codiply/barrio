@@ -2,6 +2,7 @@ package com.codiply.barrio.helpers
 
 object ConfigKey {
   val akkaSystem = "barrio.akka-system"
+  val akkaSeeds = "barrio.akka-seeds"
   val defaultRequestTimeoutMilliseconds = "barrio.default-request-timeout-milliseconds"
   val cacheExpireAfterAccessSeconds = "barrio.cache-expire-after-access-seconds"
   val cacheMaximumSize = "barrio.maximum-size"

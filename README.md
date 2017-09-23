@@ -84,7 +84,7 @@ Bring the cluster down with
     
 ### Environment variables for node configuration
 
-- `BARRIO_AKKA_SEED_HOST`: the seed node in the format `host:port` (do not include any protocol or actor system information)
+- `BARRIO_AKKA_SEEDS`: comma-separated list of the seed nodes in the format `host:port` (do not include any protocol or actor system information)
 - `BARRIO_AKKA_SYSTEM`: a consistent name across nodes that belong to one cluster
 - `BARRIO_AKKA_REMOTING_PORT`: the port to be used by AKKA on this node
 - `BARRIO_DEFAULT_REQUEST_TIMEOUT`: the default timeout for each request in milliseconds
@@ -96,7 +96,7 @@ Bring the cluster down with
 
 ### default values
 
-- `BARRIO_AKKA_SEED_HOST`: `"localhost:18011"`
+- `BARRIO_AKKA_SEEDS`: `"localhost:18011"`
 - `BARRIO_AKKA_SYSTEM`: `"barrio"`
 - `BARRIO_AKKA_REMOTING_PORT`: `18011`
 - `BARRIO_DEFAULT_REQUEST_TIMEOUT`: `10000`

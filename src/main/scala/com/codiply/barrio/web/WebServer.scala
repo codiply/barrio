@@ -23,7 +23,7 @@ class WebServer(neighborhood: NeighborProvider) extends HttpApp with JsonSupport
   override def routes: Route =
     path("") {
       get {
-        complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Hello from Barrio!</h1>"))
+        complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>This is a Barrio full node!</h1>"))
       }
     } ~
     path("health") {
