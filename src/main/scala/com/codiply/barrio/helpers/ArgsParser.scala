@@ -24,6 +24,7 @@ case class ArgsConfig(
     cache: Boolean = false,
     coordinateSeparator: String = ",",
     dimensions: Int = -1,
+    encoding: String = "UTF-8",
     file: String = "",
     separator: String = ":::",
     maxPointsPerLeaf: Int = ArgsConfig.defaultMaxPointsPerLeaf,
@@ -63,6 +64,11 @@ object ArgsParser {
       .maxOccurs(1)
       .action { (v, conf) => conf.copy(file = v) }
       .text("the path to the input file containing the data points")
+
+    opt[String]("encoding")
+      .maxOccurs(1)
+      .action { (v, conf) => conf.copy(encoding = v)}
+      .text("the encoding to be used when loading the data")
 
     opt[String]('m', "metric")
       .maxOccurs(1)

@@ -14,17 +14,17 @@ object PointLoader {
     config.dataSourceType match {
       case WebDataSource =>
         () =>
-          fromCsvUrl(config.file, config.dimensions,
+          fromCsvUrl(config.file, config.dimensions, encoding = config.encoding,
             separator = config.separator, coordinateSeparator = config.coordinateSeparator)
       case LocalDataSource =>
         () =>
-          fromCsvFile(config.file, config.dimensions,
+          fromCsvFile(config.file, config.dimensions,encoding = config.encoding,
             separator = config.separator, coordinateSeparator = config.coordinateSeparator)
       case S3DataSource =>
         () =>
           config.s3Bucket match {
             case Some(bucket) => fromCsvOnS3(bucket = bucket, key = config.file, dimensions = config.dimensions,
-              separator = config.separator, coordinateSeparator = config.coordinateSeparator)
+              encoding = config.encoding, separator = config.separator, coordinateSeparator = config.coordinateSeparator)
             case None => Set.empty
           }
     }
@@ -33,18 +33,20 @@ object PointLoader {
   def fromCsvFile(
       fileName: String,
       dimensions: Int,
+      encoding: String,
       separator: String,
       coordinateSeparator: String): Seq[Point] = {
-    fromCsvLines(Source.fromFile(fileName)("UTF-8").getLines.toSeq,
+    fromCsvLines(Source.fromFile(fileName)(encoding).getLines.toSeq,
         dimensions, separator = separator, coordinateSeparator = coordinateSeparator)
   }
 
   def fromCsvUrl(
       url: String,
       dimensions: Int,
+      encoding: String,
       separator: String,
       coordinateSeparator: String): Seq[Point] = {
-    fromCsvLines(Source.fromURL(url)("UTF-8").getLines.toSeq,
+    fromCsvLines(Source.fromURL(url)(encoding).getLines.toSeq,
         dimensions, separator = separator, coordinateSeparator = coordinateSeparator)
   }
 
@@ -52,11 +54,12 @@ object PointLoader {
       bucket: String,
       key: String,
       dimensions: Int,
+      encoding: String,
       separator: String,
       coordinateSeparator: String): Seq[Point] = {
     implicit val s3 = S3.at(Region.Ireland)
     val s3Object = s3.getObject(bucket, key)
-    val lines = Source.fromInputStream(s3Object.getObjectContent())("UTF-8").getLines.toSeq
+    val lines = Source.fromInputStream(s3Object.getObjectContent())(encoding).getLines.toSeq
     fromCsvLines(lines, dimensions, separator = separator, coordinateSeparator = coordinateSeparator)
   }
 
