@@ -2,26 +2,65 @@ package com.codiply.barrio.helpers
 
 import scala.io.Source
 
+import awscala.s3.S3
+import awscala.Region
+
 import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.geometry.Point.Coordinates
+import com.codiply.barrio.helpers.DataSourceType._
 
 object PointLoader {
+  def getLoader(config: ArgsConfig): () => Iterable[Point] = {
+    config.dataSourceType match {
+      case WebDataSource =>
+        () =>
+          fromCsvUrl(config.file, config.dimensions, encoding = config.encoding,
+            separator = config.separator, coordinateSeparator = config.coordinateSeparator)
+      case LocalDataSource =>
+        () =>
+          fromCsvFile(config.file, config.dimensions,encoding = config.encoding,
+            separator = config.separator, coordinateSeparator = config.coordinateSeparator)
+      case S3DataSource =>
+        () =>
+          config.s3Bucket match {
+            case Some(bucket) => fromCsvOnS3(bucket = bucket, key = config.file, dimensions = config.dimensions,
+              encoding = config.encoding, separator = config.separator, coordinateSeparator = config.coordinateSeparator)
+            case None => Set.empty
+          }
+    }
+  }
+
   def fromCsvFile(
       fileName: String,
       dimensions: Int,
+      encoding: String,
       separator: String,
       coordinateSeparator: String): Seq[Point] = {
-    fromCsvLines(Source.fromFile(fileName)("UTF-8").getLines.toSeq,
+    fromCsvLines(Source.fromFile(fileName)(encoding).getLines.toSeq,
         dimensions, separator = separator, coordinateSeparator = coordinateSeparator)
   }
 
   def fromCsvUrl(
       url: String,
       dimensions: Int,
+      encoding: String,
       separator: String,
       coordinateSeparator: String): Seq[Point] = {
-    fromCsvLines(Source.fromURL(url)("UTF-8").getLines.toSeq,
+    fromCsvLines(Source.fromURL(url)(encoding).getLines.toSeq,
         dimensions, separator = separator, coordinateSeparator = coordinateSeparator)
+  }
+
+  def fromCsvOnS3(
+      bucket: String,
+      key: String,
+      dimensions: Int,
+      encoding: String,
+      separator: String,
+      coordinateSeparator: String): Seq[Point] = {
+    implicit val s3 = S3.at(Region.Ireland)
+    val s3Object = s3.getObject(bucket, key)
+    val lines = Source.fromInputStream(s3Object.getObjectContent())(encoding).getLines.toSeq
+    fromCsvLines(lines, dimensions, separator = separator, coordinateSeparator = coordinateSeparator)
   }
 
   def fromCsvLines(

@@ -93,6 +93,7 @@ Bring the cluster down with
 - `BARRIO_WEB_API_PORT`: the port of the Web API endpoint
 - `CACHE_EXPIRE_AFTER_ACCESS_SECONDS`: expiry period in seconds for cached responses
 - `CACHE_MAXIMUM_SIZE`: the maximum number of responses to be cached
+- `AWS_CREDENTIAL_PROFILES_FILE`: Used for AWS credentials if you load the data from S3. (see [here](http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html) for more details)
 
 ### default values
 

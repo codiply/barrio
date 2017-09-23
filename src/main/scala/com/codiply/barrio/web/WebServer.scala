@@ -1,7 +1,5 @@
 package com.codiply.barrio.web
 
-import scala.concurrent.Future
-
 import akka.http.scaladsl.model.ContentTypes
 import akka.http.scaladsl.model.HttpEntity
 import akka.http.scaladsl.model.HttpResponse
