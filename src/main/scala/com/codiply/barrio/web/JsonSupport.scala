@@ -59,6 +59,7 @@ object JsonSupport {
     def mapClusterStats(stats: ClusterStats): ClusterStatsJson =
       ClusterStatsJson(
           initialised = stats.initialised,
+          nodeCount = stats.nodes.size,
           nodes = stats.nodes.mapValues(mapNodeStats))
 
     def mapClusterHealth(health: ClusterHealth): ClusterHealthJson =
@@ -93,6 +94,7 @@ object JsonSupport {
 
   final case class ClusterStatsJson(
       initialised: Boolean,
+      nodeCount: Int,
       nodes: Map[String, NodeStatsJson])
 
   final case class ClusterHealthJson(errors: Seq[String])
@@ -109,6 +111,6 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val longQuantityStatsFormat = jsonFormat4(LongQuantityStatsJson)
   implicit val treeStatsFormat = jsonFormat5(TreeStatsJson)
   implicit val nodeStatsFormat = jsonFormat5(NodeStatsJson)
-  implicit val clusterStatsFormat = jsonFormat2(ClusterStatsJson)
+  implicit val clusterStatsFormat = jsonFormat3(ClusterStatsJson)
   implicit val clusterHealthFormat = jsonFormat1(ClusterHealthJson)
 }
