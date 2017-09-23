@@ -129,7 +129,7 @@ class NeighborhoodReceptionistActor(
   }
 
   private def logClusterEvent(eventName: String, member: Member) =
-    log.info("Received cluster event {0) from member {1} with roles {2}",
+    log.info("Received cluster event {} from member {} with roles {}",
       eventName, member.address, member.roles)
 
   private def isFullNode(member: Member): Boolean = member.hasRole(NodeRoles.fullNode)
