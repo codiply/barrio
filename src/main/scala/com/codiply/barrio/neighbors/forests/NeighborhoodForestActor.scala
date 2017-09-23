@@ -5,21 +5,17 @@ import scala.concurrent.duration._
 import akka.actor.Actor
 import akka.actor.ActorLogging
 import akka.actor.ActorRef
-import akka.actor.Actor.Receive
 import akka.actor.Props
 import akka.pattern.ask
 import akka.util.Timeout
 
-import com.codiply.barrio.geometry.Metric
 import com.codiply.barrio.geometry.Point
-import com.codiply.barrio.geometry.RealDistance
-import com.codiply.barrio.helpers.Constants
 import com.codiply.barrio.helpers.RandomProvider
+import com.codiply.barrio.helpers.TimeHelper
+import com.codiply.barrio.helpers.TimeStamp
 import com.codiply.barrio.neighbors.ActorProtocol._
 import com.codiply.barrio.neighbors.NeighborhoodConfig
-import com.codiply.barrio.neighbors.aggregators.NeighborAggregatorActor
-import com.codiply.barrio.neighbors.NodeStats
-import com.codiply.barrio.neighbors.TreeStats
+
 
 object NeighborhoodForestActor {
   def props(
@@ -66,10 +62,15 @@ class NeighborhoodForestActor(
     case request: GetNeighborsRequestByLocation => {
       if (request.location.length == config.dimensions) {
         val originalSender = sender
-        val effectiveTimeoutMilliseconds = config.getEffectiveTimeoutMilliseconds(Some(request.timeoutMilliseconds))
+
+        val timeoutMilliseconds = TimeHelper.timeoutFromNowMilliseconds(request.timeoutOn)
+        val effectiveTimeoutMilliseconds = config.getEffectiveTimeoutMilliseconds(Some(timeoutMilliseconds))
+        val effectiveTimeoutOn = TimeStamp.fromMillisFromNow(effectiveTimeoutMilliseconds)
+
         val searchActor = context.actorOf(NeighborhoodForestSearchActor.props(
             originalSender, initialisedTrees, request.location, request.k, request.distanceThreshold,
-            includeData = request.includeData, includeLocation = request.includeLocation, effectiveTimeoutMilliseconds))
+            includeData = request.includeData, includeLocation = request.includeLocation,
+            timeoutOn = TimeHelper.slightlyReduceTimeout(effectiveTimeoutOn)))
       } else {
         sender ! NearestNeighborsContainer.empty(request.k)
       }
@@ -79,7 +80,7 @@ class NeighborhoodForestActor(
       sendNodeStats(timeoutMilliseconds, originalSender, doGarbageCollect)
   }
 
-  private def sendNodeStats(timeoutMilliseconds: Int, recipient: ActorRef, doGarbageCollect: Boolean): Unit = {
+  private def sendNodeStats(timeoutMilliseconds: Long, recipient: ActorRef, doGarbageCollect: Boolean): Unit = {
     implicit val askTimeout = Timeout(timeoutMilliseconds.milliseconds)
 
     val runtime = Runtime.getRuntime

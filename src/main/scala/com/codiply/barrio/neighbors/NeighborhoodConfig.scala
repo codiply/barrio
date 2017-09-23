@@ -70,7 +70,7 @@ case class NeighborhoodConfig(
     nodeName: String,
     treesPerNode: Int,
     version: String) {
-  def getEffectiveTimeoutMilliseconds(requestTimeoutMilliseconds: Option[Int]): Int = {
+  def getEffectiveTimeoutMilliseconds(requestTimeoutMilliseconds: Option[Long]): Long = {
     requestTimeoutMilliseconds match {
       case None => defaultRequestTimeoutMilliseconds
       case Some(timeout) =>

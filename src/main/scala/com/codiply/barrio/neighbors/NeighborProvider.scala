@@ -18,7 +18,7 @@ trait NeighborProvider {
       distanceThreshold: Option[RealDistance],
       includeData: Boolean,
       includeLocation: Boolean,
-      timeoutMilliseconds: Option[Int]): Future[Either[NeighborsRequestError, NeighborsResponse]]
+      timeoutMilliseconds: Option[Long]): Future[Either[NeighborsRequestError, NeighborsResponse]]
   def getHealth(): Future[ClusterHealth]
   def getStats(doGarbageCollect: Boolean): Future[ClusterStats]
 }

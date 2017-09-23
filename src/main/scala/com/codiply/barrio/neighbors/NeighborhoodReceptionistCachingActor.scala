@@ -2,7 +2,6 @@ package com.codiply.barrio.neighbors
 
 import scala.concurrent.duration._
 import scala.concurrent.Future
-
 import akka.actor.Actor
 import akka.actor.ActorLogging
 import akka.actor.ActorRef
@@ -12,8 +11,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import com.github.blemale.scaffeine.Cache
 import com.github.blemale.scaffeine.Scaffeine
-
-import com.codiply.barrio.helpers.Constants
+import com.codiply.barrio.helpers.{Constants, TimeHelper}
 import com.codiply.barrio.neighbors.caching.Types.NeighborsCache
 
 object NeighborhoodReceptionistCachingActor {
@@ -44,7 +42,7 @@ class NeighborhoodReceptionistCachingActor(
   def receive: Receive = {
     case request: GetNeighborsRequestByLocationId if !request.includeData && !request.includeLocation => {
       val originalSender = sender
-      implicit val askTimeout = Timeout((Constants.slightlyIncreaseTimeout(request.timeoutMilliseconds)).milliseconds)
+      implicit val askTimeout = Timeout(TimeHelper.timeoutFromNowMilliseconds(TimeHelper.considerablyIncreaseTimeout(request.timeoutOn)).milliseconds)
       (neighborsCacheReader ? GetCachedNeighborsRequest(request.locationId, request.k)).mapTo[GetCachedNeighborsResponse].foreach(cacheResponse => {
         cacheResponse.response match {
           case Some(response) => originalSender ! response

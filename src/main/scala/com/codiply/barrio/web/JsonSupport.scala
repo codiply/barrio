@@ -20,7 +20,7 @@ object JsonSupport {
       distanceThreshold: Option[Double],
       includeData: Option[Boolean],
       includeLocation: Option[Boolean],
-      timeout: Option[Int])
+      timeout: Option[Long])
   final case class NeighborsResponseJson(timeoutReached: Boolean, count: Int, neighbors: Seq[NeighborJson])
 
   final case class NeighborsErrorJson(error: String)

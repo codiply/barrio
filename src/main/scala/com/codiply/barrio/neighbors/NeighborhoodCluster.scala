@@ -11,12 +11,11 @@ import akka.pattern.ask
 import akka.routing.BroadcastGroup
 import akka.util.Timeout
 
-import com.codiply.barrio.helpers.CacheWrapper
 import com.codiply.barrio.helpers.Constants
 import com.codiply.barrio.helpers.RandomProvider
 import com.codiply.barrio.helpers.ScaffeineWrapper
-import com.codiply.barrio.geometry.EasyDistance
-import com.codiply.barrio.geometry.Metric
+import com.codiply.barrio.helpers.TimeHelper
+import com.codiply.barrio.helpers.TimeStamp
 import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.geometry.Point.Coordinates
 import com.codiply.barrio.geometry.RealDistance
@@ -84,7 +83,7 @@ class NeighborhoodCluster (
     distanceThreshold: Option[RealDistance],
     includeData: Boolean,
     includeLocation: Boolean,
-    timeoutMilliseconds: Option[Int]): Future[Either[NeighborsRequestError, NeighborsResponse]] = {
+    timeoutMilliseconds: Option[Long]): Future[Either[NeighborsRequestError, NeighborsResponse]] = {
     val effectiveTimeoutMilliseconds = config.getEffectiveTimeoutMilliseconds(timeoutMilliseconds)
     val effectiveDistanceThreshold = distanceThreshold.getOrElse(RealDistance.zero)
     (location, locationId) match {
@@ -115,13 +114,14 @@ class NeighborhoodCluster (
       distanceThreshold: RealDistance,
       includeData: Boolean,
       includeLocation: Boolean,
-      timeoutMilliseconds: Int): Future[Either[NeighborsRequestError, NeighborsResponse]] = {
+      timeoutMilliseconds: Long): Future[Either[NeighborsRequestError, NeighborsResponse]] = {
     if (location.length == config.dimensions) {
       metric.toEasyDistance(distanceThreshold) match {
         case Some(easyDistanceThreshold) => {
+          val timeoutOn = TimeStamp.fromMillisFromNow(timeoutMilliseconds)
           val request = GetNeighborsRequestByLocation(
             Coordinates(location: _*), k , easyDistanceThreshold, includeData = includeData,
-            includeLocation = includeLocation, timeoutMilliseconds)
+            includeLocation = includeLocation, timeoutOn)
           getNeighborsWithRequest(request, timeoutMilliseconds).map(response => Right(response))
         }
         case None => Future(Left(InvalidDistanceThreshold))
@@ -137,12 +137,13 @@ class NeighborhoodCluster (
       distanceThreshold: RealDistance,
       includeData: Boolean,
       includeLocation: Boolean,
-      timeoutMilliseconds: Int): Future[Either[NeighborsRequestError, NeighborsResponse]] = {
+      timeoutMilliseconds: Long): Future[Either[NeighborsRequestError, NeighborsResponse]] = {
     metric.toEasyDistance(distanceThreshold) match {
       case Some(easyDistanceThreshold) => {
+        val timeoutOn = TimeStamp.fromMillisFromNow(timeoutMilliseconds)
         val request = GetNeighborsRequestByLocationId(
           locationId, k , easyDistanceThreshold, includeData = includeData,
-          includeLocation = includeLocation, timeoutMilliseconds)
+          includeLocation = includeLocation, timeoutOn)
         getNeighborsWithRequest(request, timeoutMilliseconds).map(response => Right(response))
       }
       case None => Future(Left(InvalidDistanceThreshold))
@@ -151,8 +152,8 @@ class NeighborhoodCluster (
 
   private def getNeighborsWithRequest(
       request: GetNeighborsRequest,
-      timeoutMilliseconds: Int): Future[NeighborsResponse] = {
-    implicit val askTimeout = Timeout((Constants.slightlyIncreaseTimeout(timeoutMilliseconds)).milliseconds)
+      timeoutMilliseconds: Long): Future[NeighborsResponse] = {
+    implicit val askTimeout = Timeout((Constants.considerablyIncreaseTimeout(timeoutMilliseconds)).milliseconds)
     (receptionistActor ? request).mapTo[GetNeighborsResponse].map(response =>
       NeighborsResponse(
         timeoutReached = response.timeoutReached,
@@ -167,7 +168,7 @@ class NeighborhoodCluster (
 
   def getStats(doGarbageCollect: Boolean): Future[ClusterStats] = {
     val timeoutMilliseconds = Constants.statsTimeoutMilliseconds
-    implicit val askTimeout = Timeout(Constants.slightlyIncreaseTimeout(timeoutMilliseconds).milliseconds)
+    implicit val askTimeout = Timeout(Constants.considerablyIncreaseTimeout(timeoutMilliseconds).milliseconds)
     val response = (receptionistActor ? GetClusterStatsRequest(timeoutMilliseconds, doGarbageCollect))
     response.mapTo[GetClusterStatsResponse].map(_.stats)
   }
