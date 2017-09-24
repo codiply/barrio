@@ -12,9 +12,9 @@ import akka.routing.BroadcastGroup
 import akka.util.Timeout
 
 import com.codiply.barrio.helpers.Constants
+import com.codiply.barrio.helpers.NodeRoles
 import com.codiply.barrio.helpers.RandomProvider
 import com.codiply.barrio.helpers.ScaffeineWrapper
-import com.codiply.barrio.helpers.TimeHelper
 import com.codiply.barrio.helpers.TimeStamp
 import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.geometry.Point.Coordinates
@@ -105,7 +105,7 @@ class NeighborhoodCluster (
               totalInstances = Int.MaxValue,
               routeesPaths = List("/user/" + nodeNamePrefix + "*"),
               allowLocalRoutees = true,
-              useRole = None)).props(), name = "router-to-" + nodeNamePrefix)
+              useRole = Some(NodeRoles.fullNode))).props(), name = "router-to-" + nodeNamePrefix)
   }
 
   private def getNeighborsByLocation(
