@@ -16,6 +16,8 @@ import com.codiply.barrio.generic.OneOffForwardingActor
 import com.codiply.barrio.generic.OneOffForwardingActor.OneOffForward
 import com.codiply.barrio.helpers.NodeRoles
 import com.codiply.barrio.helpers.Constants
+import com.codiply.barrio.helpers.TimeHelper
+import com.codiply.barrio.helpers.TimeStamp
 import com.codiply.barrio.neighbors.aggregators.LocationIndexAggregatorActor
 import com.codiply.barrio.neighbors.aggregators.NeighborAggregatorActor
 import com.codiply.barrio.neighbors.aggregators.NodeStatsAggregatorActor
@@ -46,21 +48,24 @@ class NeighborhoodReceptionistActor(
   val receive: Receive = receiveRequests orElse receiveClusterEvents
 
   def receiveRequests: Receive = {
-    case request @ GetNeighborsRequestByLocation(location, k, distanceThreshold, _, _, timeoutMilliseconds) => {
+    case request @ GetNeighborsRequestByLocation(location, k, distanceThreshold, _, _, timeoutOn) => {
       val originalSender = sender
       val neighborAggregator = context.actorOf(NeighborAggregatorActor.props(
-          k, originalSender, nodeCount, timeoutMilliseconds.milliseconds, distanceThreshold))
-      val newRequest = request.copy(timeoutMilliseconds = Constants.slightlyReduceTimeout(request.timeoutMilliseconds))
+          k, originalSender, nodeCount, TimeHelper.timeoutFromNowMilliseconds(timeoutOn).milliseconds, distanceThreshold))
+      val newRequest = request.copy(timeoutOn = TimeHelper.slightlyReduceTimeout(request.timeoutOn))
       nodeActorRouter.tell(newRequest, neighborAggregator)
     }
     case request: GetNeighborsRequestByLocationId => {
       val originalSender = sender
       val myself = self
-      val slightlyReducedTimeout = Constants.slightlyReduceTimeout(request.timeoutMilliseconds)
+      val neighborsTimeoutOn = request.timeoutOn
+      val forwarderTimeoutOn = TimeHelper.slightlyReduceTimeout(request.timeoutOn)
+      val locationIndexTimeoutOn = TimeHelper.slightlyReduceTimeout(forwarderTimeoutOn)
 
       // Prepare the aggregator for the neighbors.
       val neighborAggregator = context.actorOf(NeighborAggregatorActor.props(
-          request.k, originalSender, nodeCount, request.timeoutMilliseconds.milliseconds, request.distanceThreshold))
+          request.k, originalSender, nodeCount,
+          TimeHelper.timeoutFromNowMilliseconds(neighborsTimeoutOn).milliseconds, request.distanceThreshold))
 
       val forwardingLogic = (getLocationResponse: GetLocationResponse) =>
         getLocationResponse.location match {
@@ -71,14 +76,16 @@ class NeighborhoodReceptionistActor(
                 location, request.k, request.distanceThreshold,
                 includeData = request.includeData,
                 includeLocation = request.includeLocation,
-                slightlyReducedTimeout))
+                timeoutOn = TimeHelper.slightlyReduceTimeout(request.timeoutOn)))
           case None => OneOffForward(from = myself, to = neighborAggregator, message = TerminateAggregationEarly)
       }
 
-      val forwardingActor = context.actorOf(OneOffForwardingActor.props(forwardingLogic, None, slightlyReducedTimeout.milliseconds))
+      val forwardingActor = context.actorOf(OneOffForwardingActor.props(forwardingLogic, None,
+        TimeHelper.timeoutFromNowMilliseconds(forwarderTimeoutOn).milliseconds))
 
       val locationIndexAggregator = context.actorOf(LocationIndexAggregatorActor.props(
-          forwardingActor, nodeCount, slightlyReducedTimeout.milliseconds))
+          forwardingActor, nodeCount,
+          TimeHelper.timeoutFromNowMilliseconds(locationIndexTimeoutOn).milliseconds))
       locationIndexActorRouter.tell(GetLocationRequest(request.locationId), locationIndexAggregator)
     }
     case request @ GetClusterStatsRequest(timeoutMilliseconds, doGarbageCollect) => {

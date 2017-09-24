@@ -1,8 +1,6 @@
 package com.codiply.barrio.geometry
 
 object EasyDistance {
-  def apply(value: Double): EasyDistance = new EasyDistance(value)
-
   val zero = EasyDistance(0.0)
 
   def min(distance1: EasyDistance, distance2: EasyDistance): EasyDistance =
@@ -13,7 +11,7 @@ object EasyDistance {
     }
 }
 
-final class EasyDistance(val value: Double) extends AnyVal {
+final case class EasyDistance(val value: Double) {
   def <(that: EasyDistance): Boolean = this.value < that.value
   def <=(that: EasyDistance): Boolean = this.value <= that.value
   def >(that: EasyDistance): Boolean = this.value > that.value
@@ -21,9 +19,7 @@ final class EasyDistance(val value: Double) extends AnyVal {
 }
 
 object RealDistance {
-  def apply(value: Double): RealDistance = new RealDistance(value)
-
-  val zero = new RealDistance(0.0)
+  val zero = RealDistance(0.0)
 
   def min(distance1: RealDistance, distance2: RealDistance): RealDistance =
     if (distance1 <= distance2) {
@@ -33,7 +29,7 @@ object RealDistance {
     }
 }
 
-final class RealDistance(val value: Double) extends AnyVal {
+final case class RealDistance(val value: Double) {
   def <(that: RealDistance): Boolean = this.value < that.value
   def <=(that: RealDistance): Boolean = this.value <= that.value
   def >(that: RealDistance): Boolean = this.value > that.value

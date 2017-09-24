@@ -5,12 +5,12 @@ import scala.collection.mutable.PriorityQueue
 import akka.actor.Actor
 import akka.actor.ActorLogging
 import akka.actor.ActorRef
-import akka.actor.Actor.Receive
 import akka.actor.Props
 
 import com.codiply.barrio.geometry.EasyDistance
-import com.codiply.barrio.geometry.Point
 import com.codiply.barrio.geometry.Point.Coordinates
+import com.codiply.barrio.helpers.TimeHelper
+import com.codiply.barrio.helpers.TimeStamp
 import com.codiply.barrio.neighbors.NearestNeighborsContainer
 
 object NeighborhoodForestSearchActor {
@@ -22,9 +22,9 @@ object NeighborhoodForestSearchActor {
       distanceThreshold: EasyDistance,
       includeData: Boolean,
       includeLocation: Boolean,
-      timeoutMilliseconds: Int): Props = Props(new NeighborhoodForestSearchActor(
+      timeoutOn: TimeStamp): Props = Props(new NeighborhoodForestSearchActor(
           responseRecipient, treesToSearch, location, k, distanceThreshold,
-          includeData = includeData, includeLocation = includeLocation, timeoutMilliseconds))
+          includeData = includeData, includeLocation = includeLocation, timeoutOn))
 }
 
 object NeighborhoodForestSearchActorProtocol {
@@ -45,12 +45,13 @@ class NeighborhoodForestSearchActor(
       distanceThreshold: EasyDistance,
       includeData: Boolean,
       includeLocation: Boolean,
-      timeoutMilliseconds: Int) extends Actor with ActorLogging {
+      timeoutOn: TimeStamp) extends Actor with ActorLogging {
   import context.dispatcher
   import com.codiply.barrio.neighbors.ActorProtocol._
   import NeighborhoodForestSearchActorProtocol._
   import scala.math.Ordering.Implicits._
 
+  val timeoutMilliseconds = TimeHelper.timeoutFromNowMilliseconds(timeoutOn)
   val timeoutCancellable = context.system.scheduler.scheduleOnce(timeoutMilliseconds.milliseconds, self, DoSendResponse)
 
   var prioritisedSubTrees = PriorityQueue[CandidateSubTree]()(Ordering[Double].on[CandidateSubTree](-_.minDistance.value))

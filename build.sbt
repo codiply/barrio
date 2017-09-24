@@ -10,6 +10,7 @@ libraryDependencies ++= {
   
   Seq(
     "com.github.blemale" %% "scaffeine" % "1.3.0" % Compile,
+    "com.github.nscala-time" %% "nscala-time" % "2.16.0",
     "com.github.seratch" %% "awscala" % "0.6.1",
     "com.github.scopt" %% "scopt" % "3.6.0",
     "org.scalactic" %% "scalactic" % "3.0.1",
