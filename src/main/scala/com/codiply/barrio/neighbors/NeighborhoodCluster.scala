@@ -153,7 +153,7 @@ class NeighborhoodCluster (
   private def getNeighborsWithRequest(
       request: GetNeighborsRequest,
       timeoutMilliseconds: Long): Future[NeighborsResponse] = {
-    implicit val askTimeout = Timeout((Constants.considerablyIncreaseTimeout(timeoutMilliseconds)).milliseconds)
+    implicit val askTimeout = Timeout((Constants.considerablyIncreaseTimeout(timeoutMilliseconds, 2)).milliseconds)
     (receptionistActor ? request).mapTo[GetNeighborsResponse].map(response =>
       NeighborsResponse(
         timeoutReached = response.timeoutReached,
