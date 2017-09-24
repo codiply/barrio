@@ -29,9 +29,15 @@ object TimeHelper {
     TimeStamp(millisNow + millisFromNow)
   }
 
-  def considerablyIncreaseTimeout(timeoutOn: TimeStamp): TimeStamp = {
+  def considerablyReduceTimeout(timeoutOn: TimeStamp): TimeStamp = {
     val millisNow = DateTime.now.getMillis
-    val millisFromNow = Constants.considerablyIncreaseTimeout(timeoutFromNowMilliseconds(timeoutOn))
+    val millisFromNow = Constants.considerablyReduceTimeout(timeoutFromNowMilliseconds(timeoutOn))
+    TimeStamp(millisNow + millisFromNow)
+  }
+
+  def considerablyIncreaseTimeout(timeoutOn: TimeStamp, times: Int = 1): TimeStamp = {
+    val millisNow = DateTime.now.getMillis
+    val millisFromNow = Constants.considerablyIncreaseTimeout(timeoutFromNowMilliseconds(timeoutOn), times)
     TimeStamp(millisNow + millisFromNow)
   }
 }
